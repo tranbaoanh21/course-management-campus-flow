@@ -1,0 +1,189 @@
+const { pool } = require('../config/db');
+
+const VALID_STATUSES = ['todo', 'in-progress', 'done'];
+
+function parsePositiveInteger(value) {
+  const parsedValue = Number(value);
+  return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function isValidDateString(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+async function projectExists(projectId) {
+  const [projects] = await pool.execute('SELECT id FROM projects WHERE id = ?', [projectId]);
+  return projects.length > 0;
+}
+
+function normalizeTask(task) {
+  return {
+    ...task,
+    is_overdue: Boolean(task.is_overdue),
+  };
+}
+
+async function findTask(taskId) {
+  const [tasks] = await pool.execute(
+    `SELECT id, project_id, title, description, status, due_date,
+            (due_date < CURDATE() AND status <> 'done') AS is_overdue
+     FROM tasks
+     WHERE id = ?`,
+    [taskId],
+  );
+
+  return tasks[0] ? normalizeTask(tasks[0]) : null;
+}
+
+async function getTasksByProject(request, response) {
+  const projectId = parsePositiveInteger(request.params.project_id);
+
+  if (!projectId) {
+    return response.status(400).json({
+      message: 'Invalid project ID.',
+    });
+  }
+
+  if (!(await projectExists(projectId))) {
+    return response.status(404).json({
+      message: 'Project not found.',
+    });
+  }
+
+  const [tasks] = await pool.execute(
+    `SELECT id, project_id, title, description, status, due_date,
+            (due_date < CURDATE() AND status <> 'done') AS is_overdue
+     FROM tasks
+     WHERE project_id = ?
+     ORDER BY due_date ASC, id DESC`,
+    [projectId],
+  );
+
+  return response.status(200).json({
+    data: tasks.map(normalizeTask),
+  });
+}
+
+async function createTask(request, response) {
+  const projectId = parsePositiveInteger(request.params.project_id);
+
+  if (!projectId) {
+    return response.status(400).json({
+      message: 'Invalid project ID.',
+    });
+  }
+
+  if (!(await projectExists(projectId))) {
+    return response.status(404).json({
+      message: 'Project not found.',
+    });
+  }
+
+  const { title, description, status, due_date: dueDate } = request.body;
+  const errors = {};
+
+  if (typeof title !== 'string' || title.trim().length === 0) {
+    errors.title = 'Title is required.';
+  } else if (title.trim().length > 200) {
+    errors.title = 'Title must not exceed 200 characters.';
+  }
+
+  if (description !== undefined && description !== null && typeof description !== 'string') {
+    errors.description = 'Description must be a string or null.';
+  }
+
+  if (!VALID_STATUSES.includes(status)) {
+    errors.status = 'Status must be todo, in-progress, or done.';
+  }
+
+  if (!isValidDateString(dueDate)) {
+    errors.due_date = 'Due date must be a valid date in YYYY-MM-DD format.';
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return response.status(400).json({
+      message: 'Validation failed.',
+      errors,
+    });
+  }
+
+  const trimmedTitle = title.trim();
+  const normalizedDescription = description?.trim() || null;
+  const [result] = await pool.execute(
+    `INSERT INTO tasks (project_id, title, description, status, due_date)
+     VALUES (?, ?, ?, ?, ?)`,
+    [projectId, trimmedTitle, normalizedDescription, status, dueDate],
+  );
+  const task = await findTask(result.insertId);
+
+  return response.status(201).json({
+    data: task,
+  });
+}
+
+async function updateTaskStatus(request, response) {
+  const taskId = parsePositiveInteger(request.params.task_id);
+
+  if (!taskId) {
+    return response.status(400).json({
+      message: 'Invalid task ID.',
+    });
+  }
+
+  const { status } = request.body;
+
+  if (!VALID_STATUSES.includes(status)) {
+    return response.status(400).json({
+      message: 'Validation failed.',
+      errors: {
+        status: 'Status must be todo, in-progress, or done.',
+      },
+    });
+  }
+
+  const [result] = await pool.execute('UPDATE tasks SET status = ? WHERE id = ?', [status, taskId]);
+
+  if (result.affectedRows === 0) {
+    return response.status(404).json({
+      message: 'Task not found.',
+    });
+  }
+
+  return response.status(200).json({
+    data: await findTask(taskId),
+  });
+}
+
+async function deleteTask(request, response) {
+  const taskId = parsePositiveInteger(request.params.task_id);
+
+  if (!taskId) {
+    return response.status(400).json({
+      message: 'Invalid task ID.',
+    });
+  }
+
+  const [result] = await pool.execute('DELETE FROM tasks WHERE id = ?', [taskId]);
+
+  if (result.affectedRows === 0) {
+    return response.status(404).json({
+      message: 'Task not found.',
+    });
+  }
+
+  return response.status(200).json({
+    message: 'Task deleted successfully.',
+  });
+}
+
+module.exports = {
+  getTasksByProject,
+  createTask,
+  updateTaskStatus,
+  deleteTask,
+};

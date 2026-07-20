@@ -8,7 +8,7 @@ const EMPTY_FORM = {
   due_date: '',
 };
 
-function ProjectManager({ selectedCourse }) {
+function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) {
   const [projects, setProjects] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [isLoading, setIsLoading] = useState(false);
@@ -122,6 +122,10 @@ function ProjectManager({ selectedCourse }) {
       setProjects((currentProjects) =>
         currentProjects.filter((currentProject) => currentProject.id !== project.id),
       );
+
+      if (selectedProjectId === project.id) {
+        onSelectProject(null);
+      }
     } catch (error) {
       setActionError(error.message);
     } finally {
@@ -231,20 +235,40 @@ function ProjectManager({ selectedCourse }) {
       {!isLoading && !loadError && projects.length > 0 && (
         <ul className="mt-6 grid gap-4 md:grid-cols-2">
           {projects.map((project) => (
-            <li key={project.id} className="rounded-xl border border-slate-200 p-5">
+            <li
+              key={project.id}
+              className={`rounded-xl border p-5 ${
+                selectedProjectId === project.id
+                  ? 'border-emerald-300 bg-emerald-50'
+                  : 'border-slate-200'
+              }`}
+            >
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="font-bold text-slate-800">{project.title}</h3>
                   <p className="mt-1 text-sm font-medium text-violet-600">Due {project.due_date}</p>
                 </div>
-                <button
-                  type="button"
-                  className="rounded-lg px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
-                  disabled={deletingProjectId === project.id}
-                  onClick={() => handleDelete(project)}
-                >
-                  {deletingProjectId === project.id ? 'Đang xóa...' : 'Xóa'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
+                      selectedProjectId === project.id
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'text-emerald-600 hover:bg-emerald-50'
+                    }`}
+                    onClick={() => onSelectProject(project)}
+                  >
+                    {selectedProjectId === project.id ? 'Đang xem' : 'Xem tasks'}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-lg px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    disabled={deletingProjectId === project.id}
+                    onClick={() => handleDelete(project)}
+                  >
+                    {deletingProjectId === project.id ? 'Đang xóa...' : 'Xóa'}
+                  </button>
+                </div>
               </div>
               {project.description && (
                 <p className="mt-3 text-sm leading-6 text-slate-600">{project.description}</p>

@@ -5,6 +5,8 @@ const { pool, testDatabaseConnection } = require('./config/db');
 const courseRoutes = require('./routes/courseRoutes');
 const courseProjectRoutes = require('./routes/courseProjectRoutes');
 const projectRoutes = require('./routes/projectRoutes');
+const projectTaskRoutes = require('./routes/projectTaskRoutes');
+const taskRoutes = require('./routes/taskRoutes');
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -38,6 +40,8 @@ app.get('/api/health', async (request, response) => {
 app.use('/api/courses', courseRoutes);
 app.use('/api/courses/:course_id/projects', courseProjectRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/projects/:project_id/tasks', projectTaskRoutes);
+app.use('/api/tasks', taskRoutes);
 
 app.use((request, response) => {
   return response.status(404).json({

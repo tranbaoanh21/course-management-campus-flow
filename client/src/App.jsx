@@ -2,9 +2,16 @@ import { useState } from 'react';
 
 import CourseManager from './features/courses/CourseManager';
 import ProjectManager from './features/projects/ProjectManager';
+import TaskManager from './features/tasks/TaskManager';
 
 function App() {
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
+
+  function handleSelectCourse(course) {
+    setSelectedCourse(course);
+    setSelectedProject(null);
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-12 text-slate-900">
@@ -19,11 +26,22 @@ function App() {
         </p>
 
         <div className="mt-10">
-          <CourseManager selectedCourseId={selectedCourse?.id} onSelectCourse={setSelectedCourse} />
+          <CourseManager
+            selectedCourseId={selectedCourse?.id}
+            onSelectCourse={handleSelectCourse}
+          />
         </div>
 
         <div className="mt-8">
-          <ProjectManager selectedCourse={selectedCourse} />
+          <ProjectManager
+            selectedCourse={selectedCourse}
+            selectedProjectId={selectedProject?.id}
+            onSelectProject={setSelectedProject}
+          />
+        </div>
+
+        <div className="mt-8">
+          <TaskManager selectedProject={selectedProject} />
         </div>
       </div>
     </main>
