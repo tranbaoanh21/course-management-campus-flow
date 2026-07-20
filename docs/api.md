@@ -63,6 +63,7 @@ Field `errors` chỉ xuất hiện khi có lỗi validation theo từng field.
 | `DELETE` | `/api/courses/:course_id`          | Xóa course               |
 | `GET`    | `/api/courses/:course_id/projects` | Lấy project theo course  |
 | `POST`   | `/api/courses/:course_id/projects` | Tạo project trong course |
+| `PATCH`  | `/api/projects/:project_id`        | Chỉnh sửa project        |
 | `DELETE` | `/api/projects/:project_id`        | Xóa project              |
 | `GET`    | `/api/projects/:project_id/tasks`  | Lấy task theo project    |
 | `POST`   | `/api/projects/:project_id/tasks`  | Tạo task trong project   |
@@ -299,6 +300,44 @@ Xóa project. MySQL đồng thời xóa các task liên quan bằng `ON DELETE C
 ```json
 {
   "message": "Project deleted successfully."
+}
+```
+
+#### Response `404 Not Found`
+
+```json
+{
+  "message": "Project not found."
+}
+```
+
+### `PATCH /api/projects/:project_id`
+
+Chỉnh sửa title, description và due date của project. Course sở hữu project không thay đổi.
+
+#### Request body
+
+```json
+{
+  "title": "Updated Database Assignment",
+  "description": "Updated project description.",
+  "due_date": "2026-09-01"
+}
+```
+
+Validation của các field giống endpoint tạo project.
+
+#### Response `200 OK`
+
+```json
+{
+  "data": {
+    "id": 1,
+    "course_id": 1,
+    "title": "Updated Database Assignment",
+    "description": "Updated project description.",
+    "due_date": "2026-09-01"
+  }
 }
 ```
 

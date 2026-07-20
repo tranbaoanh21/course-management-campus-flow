@@ -14,9 +14,40 @@ function isValidDateString(value) {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
+function validateProjectInput({ title, description, dueDate }) {
+  const errors = {};
+
+  if (typeof title !== 'string' || title.trim().length === 0) {
+    errors.title = 'Title is required.';
+  } else if (title.trim().length > 200) {
+    errors.title = 'Title must not exceed 200 characters.';
+  }
+
+  if (description !== undefined && description !== null && typeof description !== 'string') {
+    errors.description = 'Description must be a string or null.';
+  }
+
+  if (!isValidDateString(dueDate)) {
+    errors.due_date = 'Due date must be a valid date in YYYY-MM-DD format.';
+  }
+
+  return errors;
+}
+
 async function courseExists(courseId) {
   const [courses] = await pool.execute('SELECT id FROM courses WHERE id = ?', [courseId]);
   return courses.length > 0;
+}
+
+async function findProject(projectId) {
+  const [projects] = await pool.execute(
+    `SELECT id, course_id, title, description, due_date
+     FROM projects
+     WHERE id = ?`,
+    [projectId],
+  );
+
+  return projects[0] || null;
 }
 
 async function getProjectsByCourse(request, response) {
@@ -63,21 +94,7 @@ async function createProject(request, response) {
   }
 
   const { title, description, due_date: dueDate } = request.body;
-  const errors = {};
-
-  if (typeof title !== 'string' || title.trim().length === 0) {
-    errors.title = 'Title is required.';
-  } else if (title.trim().length > 200) {
-    errors.title = 'Title must not exceed 200 characters.';
-  }
-
-  if (description !== undefined && description !== null && typeof description !== 'string') {
-    errors.description = 'Description must be a string or null.';
-  }
-
-  if (!isValidDateString(dueDate)) {
-    errors.due_date = 'Due date must be a valid date in YYYY-MM-DD format.';
-  }
+  const errors = validateProjectInput({ title, description, dueDate });
 
   if (Object.keys(errors).length > 0) {
     return response.status(400).json({
@@ -102,6 +119,43 @@ async function createProject(request, response) {
       description: normalizedDescription,
       due_date: dueDate,
     },
+  });
+}
+
+async function updateProject(request, response) {
+  const projectId = parsePositiveInteger(request.params.project_id);
+
+  if (!projectId) {
+    return response.status(400).json({
+      message: 'Invalid project ID.',
+    });
+  }
+
+  if (!(await findProject(projectId))) {
+    return response.status(404).json({
+      message: 'Project not found.',
+    });
+  }
+
+  const { title, description, due_date: dueDate } = request.body;
+  const errors = validateProjectInput({ title, description, dueDate });
+
+  if (Object.keys(errors).length > 0) {
+    return response.status(400).json({
+      message: 'Validation failed.',
+      errors,
+    });
+  }
+
+  await pool.execute(
+    `UPDATE projects
+     SET title = ?, description = ?, due_date = ?
+     WHERE id = ?`,
+    [title.trim(), description?.trim() || null, dueDate, projectId],
+  );
+
+  return response.status(200).json({
+    data: await findProject(projectId),
   });
 }
 
@@ -130,5 +184,6 @@ async function deleteProject(request, response) {
 module.exports = {
   getProjectsByCourse,
   createProject,
+  updateProject,
   deleteProject,
 };

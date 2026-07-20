@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 
 import Modal from '../../components/Modal';
-import { createProject, deleteProject, getProjects } from '../../services/projectApi';
+import {
+  createProject,
+  deleteProject,
+  getProjects,
+  updateProject,
+} from '../../services/projectApi';
 
 const EMPTY_FORM = {
   title: '',
@@ -17,10 +22,17 @@ function formatDate(dateString) {
   }).format(new Date(`${dateString}T00:00:00`));
 }
 
+function sortProjects(projects) {
+  return [...projects].sort((firstProject, secondProject) =>
+    firstProject.due_date.localeCompare(secondProject.due_date),
+  );
+}
+
 function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) {
   const [projects, setProjects] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
+  const [editingProject, setEditingProject] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingProjectId, setDeletingProjectId] = useState(null);
@@ -75,8 +87,30 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
 
   function closeForm() {
     setShowForm(false);
+    setEditingProject(null);
+    setForm(EMPTY_FORM);
     setFormErrors({});
     setActionError('');
+  }
+
+  function openCreateForm() {
+    setEditingProject(null);
+    setForm(EMPTY_FORM);
+    setFormErrors({});
+    setActionError('');
+    setShowForm(true);
+  }
+
+  function openEditForm(project) {
+    setEditingProject(project);
+    setForm({
+      title: project.title,
+      description: project.description || '',
+      due_date: project.due_date,
+    });
+    setFormErrors({});
+    setActionError('');
+    setShowForm(true);
   }
 
   async function handleSubmit(event) {
@@ -101,20 +135,34 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
     setActionError('');
 
     try {
-      const newProject = await createProject(selectedCourse.id, {
+      const projectInput = {
         title: form.title.trim(),
         description: form.description.trim() || null,
         due_date: form.due_date,
-      });
+      };
 
-      setProjects((currentProjects) =>
-        [...currentProjects, newProject].sort((firstProject, secondProject) =>
-          firstProject.due_date.localeCompare(secondProject.due_date),
-        ),
-      );
-      setForm(EMPTY_FORM);
-      setShowForm(false);
-      onSelectProject(newProject);
+      if (editingProject) {
+        const updatedProject = await updateProject(editingProject.id, projectInput);
+
+        setProjects((currentProjects) =>
+          sortProjects(
+            currentProjects.map((project) =>
+              project.id === updatedProject.id ? updatedProject : project,
+            ),
+          ),
+        );
+
+        if (selectedProjectId === updatedProject.id) {
+          onSelectProject(updatedProject);
+        }
+      } else {
+        const newProject = await createProject(selectedCourse.id, projectInput);
+
+        setProjects((currentProjects) => sortProjects([...currentProjects, newProject]));
+        onSelectProject(newProject);
+      }
+
+      closeForm();
     } catch (error) {
       setFormErrors(error.fieldErrors || {});
       setActionError(error.message);
@@ -165,7 +213,7 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
         <button
           type="button"
           className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700"
-          onClick={() => setShowForm(true)}
+          onClick={openCreateForm}
         >
           + Tạo project
         </button>
@@ -196,7 +244,7 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
         <button
           type="button"
           className="mt-5 w-full rounded-xl border border-dashed border-slate-300 bg-white px-6 py-8 text-center transition hover:border-indigo-300 hover:bg-indigo-50/40"
-          onClick={() => setShowForm(true)}
+          onClick={openCreateForm}
         >
           <span className="font-medium text-slate-700">Course này chưa có project</span>
           <span className="mt-1 block text-sm text-slate-400">
@@ -243,18 +291,27 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
                       {project.description || 'Chưa có mô tả.'}
                     </p>
                   </button>
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+                  <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
                     <span className="text-xs font-medium text-slate-500">
                       Hạn {formatDate(project.due_date)}
                     </span>
-                    <button
-                      type="button"
-                      className="text-xs font-semibold text-slate-400 transition hover:text-red-600 disabled:opacity-50"
-                      disabled={deletingProjectId === project.id}
-                      onClick={() => handleDelete(project)}
-                    >
-                      {deletingProjectId === project.id ? 'Đang xóa...' : 'Xóa'}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        className="text-xs font-semibold text-slate-400 transition hover:text-indigo-600"
+                        onClick={() => openEditForm(project)}
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        type="button"
+                        className="text-xs font-semibold text-slate-400 transition hover:text-red-600 disabled:opacity-50"
+                        disabled={deletingProjectId === project.id}
+                        onClick={() => handleDelete(project)}
+                      >
+                        {deletingProjectId === project.id ? 'Đang xóa...' : 'Xóa'}
+                      </button>
+                    </div>
                   </div>
                 </article>
               </li>
@@ -269,8 +326,12 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
 
       {showForm && (
         <Modal
-          title="Tạo project mới"
-          description={`Project sẽ được thêm vào course ${selectedCourse.name}.`}
+          title={editingProject ? 'Chỉnh sửa project' : 'Tạo project mới'}
+          description={
+            editingProject
+              ? 'Cập nhật thông tin project. Các task hiện tại sẽ được giữ nguyên.'
+              : `Project sẽ được thêm vào course ${selectedCourse.name}.`
+          }
           onClose={closeForm}
         >
           <form className="space-y-4" onSubmit={handleSubmit}>
@@ -338,7 +399,7 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
                 className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Đang tạo...' : 'Tạo project'}
+                {isSubmitting ? 'Đang lưu...' : editingProject ? 'Lưu thay đổi' : 'Tạo project'}
               </button>
             </div>
           </form>
