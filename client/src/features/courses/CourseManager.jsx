@@ -5,6 +5,7 @@ import { createCourse, deleteCourse, getCourses } from '../../services/courseApi
 function CourseManager({ selectedCourseId, onSelectCourse }) {
   const [courses, setCourses] = useState([]);
   const [name, setName] = useState('');
+  const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingCourseId, setDeletingCourseId] = useState(null);
@@ -62,6 +63,8 @@ function CourseManager({ selectedCourseId, onSelectCourse }) {
       const newCourse = await createCourse(trimmedName);
       setCourses((currentCourses) => [newCourse, ...currentCourses]);
       setName('');
+      setShowForm(false);
+      onSelectCourse(newCourse);
     } catch (error) {
       setFormError(error.fieldErrors?.name || error.message);
     } finally {
@@ -98,28 +101,74 @@ function CourseManager({ selectedCourseId, onSelectCourse }) {
   }
 
   return (
-    <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">Courses</p>
-            <h2 className="mt-1 text-2xl font-bold">Môn học của bạn</h2>
-          </div>
-          {!isLoading && (
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">
-              {courses.length} course
-            </span>
-          )}
+    <aside className="border-b border-slate-200 bg-white px-4 py-5 sm:px-6 lg:border-r lg:border-b-0 lg:px-4 lg:py-6">
+      <div className="flex items-center justify-between gap-3 px-2">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+            Workspace
+          </p>
+          <h2 className="mt-1 font-semibold text-slate-900">Môn học</h2>
         </div>
+        <button
+          type="button"
+          aria-label="Tạo course"
+          className="grid size-9 place-items-center rounded-lg bg-slate-900 text-xl text-white transition hover:bg-slate-700"
+          onClick={() => {
+            setShowForm((currentValue) => !currentValue);
+            setFormError('');
+          }}
+        >
+          +
+        </button>
+      </div>
 
-        {isLoading && <p className="mt-8 text-slate-500">Đang tải danh sách course...</p>}
+      {showForm && (
+        <form
+          className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50 p-3"
+          onSubmit={handleSubmit}
+        >
+          <label className="text-xs font-semibold text-slate-700" htmlFor="course-name">
+            Tên course
+          </label>
+          <input
+            id="course-name"
+            type="text"
+            value={name}
+            maxLength={150}
+            autoFocus
+            className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            placeholder="Database Systems"
+            onChange={(event) => setName(event.target.value)}
+          />
+          {formError && <p className="mt-2 text-xs font-medium text-red-600">{formError}</p>}
+          <div className="mt-3 flex gap-2">
+            <button
+              type="submit"
+              className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-60"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Đang tạo...' : 'Tạo course'}
+            </button>
+            <button
+              type="button"
+              className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-white"
+              onClick={() => setShowForm(false)}
+            >
+              Hủy
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div className="mt-5">
+        {isLoading && <p className="px-2 py-4 text-sm text-slate-400">Đang tải course...</p>}
 
         {!isLoading && loadError && (
-          <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
+          <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
             <p>{loadError}</p>
             <button
               type="button"
-              className="mt-3 font-semibold underline"
+              className="mt-2 font-semibold underline"
               onClick={() => setReloadCount((count) => count + 1)}
             >
               Thử lại
@@ -128,42 +177,46 @@ function CourseManager({ selectedCourseId, onSelectCourse }) {
         )}
 
         {!isLoading && !loadError && courses.length === 0 && (
-          <div className="mt-8 rounded-xl border border-dashed border-slate-300 p-8 text-center">
-            <p className="font-semibold text-slate-700">Chưa có course nào</p>
-            <p className="mt-1 text-sm text-slate-500">Tạo course đầu tiên bằng form bên cạnh.</p>
-          </div>
+          <p className="rounded-xl border border-dashed border-slate-200 px-3 py-5 text-center text-sm text-slate-400">
+            Chưa có course nào.
+          </p>
         )}
 
         {!isLoading && !loadError && courses.length > 0 && (
-          <ul className="mt-6 space-y-3">
+          <ul className="flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-1 lg:overflow-visible">
             {courses.map((course) => (
-              <li
-                key={course.id}
-                className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 px-4 py-3"
-              >
-                <div>
-                  <p className="font-semibold text-slate-800">{course.name}</p>
-                  <p className="text-sm text-slate-500">Course #{course.id}</p>
-                </div>
-                <div className="flex items-center gap-2">
+              <li key={course.id} className="group min-w-52 lg:min-w-0">
+                <div
+                  className={`flex items-center gap-2 rounded-xl p-1.5 transition ${
+                    selectedCourseId === course.id
+                      ? 'bg-indigo-50 text-indigo-700'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
                   <button
                     type="button"
-                    className={`rounded-lg px-3 py-2 text-sm font-semibold ${
-                      selectedCourseId === course.id
-                        ? 'bg-violet-100 text-violet-700'
-                        : 'text-blue-600 hover:bg-blue-50'
-                    }`}
+                    className="flex min-w-0 flex-1 items-center gap-3 px-1.5 py-1 text-left"
                     onClick={() => onSelectCourse(course)}
                   >
-                    {selectedCourseId === course.id ? 'Đang xem' : 'Xem projects'}
+                    <span
+                      className={`grid size-8 shrink-0 place-items-center rounded-lg text-xs font-bold ${
+                        selectedCourseId === course.id
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      {course.name.slice(0, 2).toUpperCase()}
+                    </span>
+                    <span className="truncate text-sm font-medium">{course.name}</span>
                   </button>
                   <button
                     type="button"
-                    className="rounded-lg px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label={`Xóa ${course.name}`}
+                    className="rounded-md px-2 py-1 text-xs font-medium text-slate-400 opacity-100 transition hover:bg-red-50 hover:text-red-600 lg:opacity-0 lg:group-hover:opacity-100"
                     disabled={deletingCourseId === course.id}
                     onClick={() => handleDelete(course)}
                   >
-                    {deletingCourseId === course.id ? 'Đang xóa...' : 'Xóa'}
+                    {deletingCourseId === course.id ? '...' : 'Xóa'}
                   </button>
                 </div>
               </li>
@@ -171,40 +224,9 @@ function CourseManager({ selectedCourseId, onSelectCourse }) {
           </ul>
         )}
 
-        {actionError && <p className="mt-4 text-sm font-medium text-red-600">{actionError}</p>}
+        {actionError && <p className="mt-3 px-2 text-xs font-medium text-red-600">{actionError}</p>}
       </div>
-
-      <form
-        className="h-fit rounded-2xl bg-slate-900 p-6 text-white shadow-sm"
-        onSubmit={handleSubmit}
-      >
-        <p className="text-sm font-semibold uppercase tracking-wider text-blue-300">New course</p>
-        <h2 className="mt-1 text-2xl font-bold">Tạo course</h2>
-
-        <label className="mt-6 block text-sm font-semibold" htmlFor="course-name">
-          Tên course
-        </label>
-        <input
-          id="course-name"
-          type="text"
-          value={name}
-          maxLength={150}
-          className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2.5 text-white outline-none placeholder:text-slate-400 focus:border-blue-400"
-          placeholder="Ví dụ: Database Systems"
-          onChange={(event) => setName(event.target.value)}
-        />
-
-        {formError && <p className="mt-2 text-sm text-red-300">{formError}</p>}
-
-        <button
-          type="submit"
-          className="mt-5 w-full rounded-lg bg-blue-500 px-4 py-2.5 font-semibold hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Đang tạo...' : 'Tạo course'}
-        </button>
-      </form>
-    </section>
+    </aside>
   );
 }
 

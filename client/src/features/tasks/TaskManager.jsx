@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import Modal from '../../components/Modal';
 import { createTask, deleteTask, getTasks, updateTaskStatus } from '../../services/taskApi';
 
 const EMPTY_FORM = {
@@ -9,21 +10,32 @@ const EMPTY_FORM = {
   due_date: '',
 };
 
-const STATUS_LABELS = {
-  todo: 'Todo',
-  'in-progress': 'In progress',
-  done: 'Done',
+const STATUS_CONFIG = {
+  todo: {
+    label: 'Cần làm',
+    dotClass: 'bg-slate-400',
+  },
+  'in-progress': {
+    label: 'Đang làm',
+    dotClass: 'bg-blue-500',
+  },
+  done: {
+    label: 'Hoàn thành',
+    dotClass: 'bg-emerald-500',
+  },
 };
 
-function sortTasks(tasks) {
-  return [...tasks].sort((firstTask, secondTask) =>
-    firstTask.due_date.localeCompare(secondTask.due_date),
-  );
+function formatDate(dateString) {
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit',
+    month: 'short',
+  }).format(new Date(`${dateString}T00:00:00`));
 }
 
 function TaskManager({ selectedProject }) {
   const [tasks, setTasks] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
@@ -77,6 +89,12 @@ function TaskManager({ selectedProject }) {
     }));
   }
 
+  function closeForm() {
+    setShowForm(false);
+    setFormErrors({});
+    setActionError('');
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     const errors = {};
@@ -106,8 +124,9 @@ function TaskManager({ selectedProject }) {
         due_date: form.due_date,
       });
 
-      setTasks((currentTasks) => sortTasks([...currentTasks, newTask]));
+      setTasks((currentTasks) => [...currentTasks, newTask]);
       setForm(EMPTY_FORM);
+      setShowForm(false);
     } catch (error) {
       setFormErrors(error.fieldErrors || {});
       setActionError(error.message);
@@ -152,105 +171,63 @@ function TaskManager({ selectedProject }) {
 
   if (!selectedProject) {
     return (
-      <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-        <h2 className="text-xl font-bold text-slate-800">Task Management</h2>
-        <p className="mt-2 text-slate-500">Chọn “Xem tasks” ở một project để bắt đầu.</p>
+      <section className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
+        <span className="text-sm font-medium text-slate-700">Chưa chọn project</span>
+        <p className="mt-1 text-sm text-slate-400">Chọn một project phía trên để mở task board.</p>
       </section>
     );
   }
 
+  const completedTaskCount = tasks.filter((task) => task.status === 'done').length;
+  const progress = tasks.length === 0 ? 0 : Math.round((completedTaskCount / tasks.length) * 100);
+
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-wider text-emerald-600">Tasks</p>
-        <h2 className="mt-1 text-2xl font-bold">{selectedProject.title}</h2>
+    <section>
+      <div className="flex flex-col justify-between gap-4 border-t border-slate-200 pt-7 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+            Task board
+          </p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
+            {selectedProject.title}
+          </h2>
+          <div className="mt-3 flex items-center gap-3">
+            <div className="h-1.5 w-32 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-emerald-500 transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="text-xs font-medium text-slate-500">
+              {completedTaskCount}/{tasks.length} hoàn thành · {progress}%
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="self-start rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 sm:self-auto"
+          onClick={() => setShowForm(true)}
+        >
+          + Thêm task
+        </button>
       </div>
 
-      <form
-        className="mt-6 grid gap-4 rounded-xl bg-emerald-50 p-5 lg:grid-cols-2"
-        onSubmit={handleSubmit}
-      >
-        <div>
-          <label className="text-sm font-semibold" htmlFor="task-title">
-            Title
-          </label>
-          <input
-            id="task-title"
-            name="title"
-            type="text"
-            value={form.title}
-            maxLength={200}
-            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none focus:border-emerald-500"
-            onChange={handleChange}
-          />
-          {formErrors.title && <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>}
+      {actionError && !showForm && (
+        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+          {actionError}
+        </p>
+      )}
+
+      {isLoading && (
+        <div className="mt-5 grid gap-4 xl:grid-cols-3">
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="h-48 animate-pulse rounded-xl bg-slate-200/70" />
+          ))}
         </div>
-
-        <div>
-          <label className="text-sm font-semibold" htmlFor="task-due-date">
-            Due date
-          </label>
-          <input
-            id="task-due-date"
-            name="due_date"
-            type="date"
-            value={form.due_date}
-            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none focus:border-emerald-500"
-            onChange={handleChange}
-          />
-          {formErrors.due_date && (
-            <p className="mt-1 text-sm text-red-600">{formErrors.due_date}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold" htmlFor="task-status">
-            Status
-          </label>
-          <select
-            id="task-status"
-            name="status"
-            value={form.status}
-            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none focus:border-emerald-500"
-            onChange={handleChange}
-          >
-            {Object.entries(STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-          {formErrors.status && <p className="mt-1 text-sm text-red-600">{formErrors.status}</p>}
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold" htmlFor="task-description">
-            Description
-          </label>
-          <textarea
-            id="task-description"
-            name="description"
-            value={form.description}
-            rows={3}
-            className="mt-2 w-full resize-y rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none focus:border-emerald-500"
-            onChange={handleChange}
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="rounded-lg bg-emerald-600 px-4 py-2.5 font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60 lg:col-span-2"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Đang tạo...' : 'Tạo task'}
-        </button>
-      </form>
-
-      {actionError && <p className="mt-4 text-sm font-medium text-red-600">{actionError}</p>}
-      {isLoading && <p className="mt-6 text-slate-500">Đang tải tasks...</p>}
+      )}
 
       {!isLoading && loadError && (
-        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
+        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           <p>{loadError}</p>
           <button
             type="button"
@@ -262,64 +239,189 @@ function TaskManager({ selectedProject }) {
         </div>
       )}
 
-      {!isLoading && !loadError && tasks.length === 0 && (
-        <p className="mt-6 rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-500">
-          Project này chưa có task.
-        </p>
+      {!isLoading && !loadError && (
+        <div className="mt-5 grid gap-4 xl:grid-cols-3">
+          {Object.entries(STATUS_CONFIG).map(([status, config]) => {
+            const statusTasks = tasks.filter((task) => task.status === status);
+
+            return (
+              <div key={status} className="rounded-xl bg-slate-100/80 p-3">
+                <div className="flex items-center justify-between px-1 py-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`size-2 rounded-full ${config.dotClass}`} />
+                    <h3 className="text-sm font-semibold text-slate-700">{config.label}</h3>
+                  </div>
+                  <span className="rounded-md bg-white px-2 py-0.5 text-xs font-medium text-slate-500 shadow-sm">
+                    {statusTasks.length}
+                  </span>
+                </div>
+
+                <ul className="mt-3 space-y-3">
+                  {statusTasks.map((task) => (
+                    <li key={task.id}>
+                      <article
+                        className={`rounded-xl border bg-white p-4 shadow-sm transition hover:shadow-md ${
+                          task.is_overdue ? 'border-red-200' : 'border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <h4 className="font-medium leading-6 text-slate-900">{task.title}</h4>
+                          <button
+                            type="button"
+                            aria-label={`Xóa ${task.title}`}
+                            className="text-lg leading-none text-slate-300 transition hover:text-red-600 disabled:opacity-50"
+                            disabled={deletingTaskId === task.id}
+                            onClick={() => handleDelete(task)}
+                          >
+                            ×
+                          </button>
+                        </div>
+
+                        {task.description && (
+                          <p className="mt-2 text-sm leading-5 text-slate-500">
+                            {task.description}
+                          </p>
+                        )}
+
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                          <span
+                            className={`text-xs font-semibold ${
+                              task.is_overdue ? 'text-red-600' : 'text-slate-400'
+                            }`}
+                          >
+                            {task.is_overdue ? 'Quá hạn · ' : 'Hạn '}
+                            {formatDate(task.due_date)}
+                          </span>
+                          <select
+                            aria-label={`Trạng thái của ${task.title}`}
+                            value={task.status}
+                            className="max-w-32 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 outline-none focus:border-indigo-400 disabled:opacity-60"
+                            disabled={updatingTaskId === task.id}
+                            onChange={(event) => handleStatusChange(task.id, event.target.value)}
+                          >
+                            {Object.entries(STATUS_CONFIG).map(([value, statusConfig]) => (
+                              <option key={value} value={value}>
+                                {statusConfig.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </article>
+                    </li>
+                  ))}
+                </ul>
+
+                {statusTasks.length === 0 && (
+                  <p className="mt-3 rounded-lg border border-dashed border-slate-200 bg-white/60 px-3 py-5 text-center text-xs text-slate-400">
+                    Chưa có task
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
 
-      {!isLoading && !loadError && tasks.length > 0 && (
-        <ul className="mt-6 space-y-3">
-          {tasks.map((task) => (
-            <li
-              key={task.id}
-              className={`rounded-xl border p-4 ${
-                task.is_overdue ? 'border-red-300 bg-red-50' : 'border-slate-200'
-              }`}
-            >
-              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-bold text-slate-800">{task.title}</h3>
-                    {task.is_overdue && (
-                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
-                        Quá hạn
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-sm text-slate-500">Due {task.due_date}</p>
-                  {task.description && (
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{task.description}</p>
-                  )}
-                </div>
+      {showForm && (
+        <Modal
+          title="Tạo task mới"
+          description={`Task sẽ được thêm vào project ${selectedProject.title}.`}
+          onClose={closeForm}
+        >
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label className="text-sm font-medium text-slate-700" htmlFor="task-title">
+                Tên task
+              </label>
+              <input
+                id="task-title"
+                name="title"
+                type="text"
+                value={form.title}
+                maxLength={200}
+                autoFocus
+                className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                placeholder="Ví dụ: Hoàn thiện ERD"
+                onChange={handleChange}
+              />
+              {formErrors.title && <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>}
+            </div>
 
-                <div className="flex items-center gap-2">
-                  <select
-                    aria-label={`Status của ${task.title}`}
-                    value={task.status}
-                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 disabled:opacity-60"
-                    disabled={updatingTaskId === task.id}
-                    onChange={(event) => handleStatusChange(task.id, event.target.value)}
-                  >
-                    {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    className="rounded-lg px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-100 disabled:opacity-50"
-                    disabled={deletingTaskId === task.id}
-                    onClick={() => handleDelete(task)}
-                  >
-                    {deletingTaskId === task.id ? 'Đang xóa...' : 'Xóa'}
-                  </button>
-                </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="text-sm font-medium text-slate-700" htmlFor="task-status">
+                  Trạng thái
+                </label>
+                <select
+                  id="task-status"
+                  name="status"
+                  value={form.status}
+                  className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                  onChange={handleChange}
+                >
+                  {Object.entries(STATUS_CONFIG).map(([value, config]) => (
+                    <option key={value} value={value}>
+                      {config.label}
+                    </option>
+                  ))}
+                </select>
+                {formErrors.status && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.status}</p>
+                )}
               </div>
-            </li>
-          ))}
-        </ul>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700" htmlFor="task-due-date">
+                  Hạn hoàn thành
+                </label>
+                <input
+                  id="task-due-date"
+                  name="due_date"
+                  type="date"
+                  value={form.due_date}
+                  className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                  onChange={handleChange}
+                />
+                {formErrors.due_date && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.due_date}</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-700" htmlFor="task-description">
+                Mô tả <span className="font-normal text-slate-400">(không bắt buộc)</span>
+              </label>
+              <textarea
+                id="task-description"
+                name="description"
+                value={form.description}
+                rows={3}
+                className="mt-2 w-full resize-y rounded-lg border border-slate-300 px-3 py-2.5 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                onChange={handleChange}
+              />
+            </div>
+
+            {actionError && <p className="text-sm font-medium text-red-600">{actionError}</p>}
+
+            <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
+              <button
+                type="button"
+                className="rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                onClick={closeForm}
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Đang tạo...' : 'Tạo task'}
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
     </section>
   );
