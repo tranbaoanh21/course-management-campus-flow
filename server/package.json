@@ -1,0 +1,16 @@
+{
+  "name": "campus-flow-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "REST API for CampusFlow Phase 1",
+  "main": "src/app.js",
+  "scripts": {
+    "dev": "node --env-file=.env --watch src/app.js",
+    "start": "node --env-file=.env src/app.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mysql2": "^3.23.1"
+  }
+}
