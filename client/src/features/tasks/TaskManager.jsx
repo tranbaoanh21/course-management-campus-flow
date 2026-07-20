@@ -31,6 +31,14 @@ const STATUS_CONFIG = {
   },
 };
 
+const TASK_FILTERS = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'todo', label: 'Cần làm' },
+  { value: 'in-progress', label: 'Đang làm' },
+  { value: 'done', label: 'Hoàn thành' },
+  { value: 'overdue', label: 'Quá hạn' },
+];
+
 function formatDate(dateString) {
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',
@@ -43,6 +51,8 @@ function TaskManager({ selectedProject }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [taskFilter, setTaskFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
@@ -220,6 +230,17 @@ function TaskManager({ selectedProject }) {
 
   const completedTaskCount = tasks.filter((task) => task.status === 'done').length;
   const progress = tasks.length === 0 ? 0 : Math.round((completedTaskCount / tasks.length) * 100);
+  const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase('vi');
+  const visibleTasks = tasks.filter((task) => {
+    const matchesSearch = task.title.toLocaleLowerCase('vi').includes(normalizedSearchQuery);
+    const matchesFilter =
+      taskFilter === 'all' ||
+      task.status === taskFilter ||
+      (taskFilter === 'overdue' && task.is_overdue);
+
+    return matchesSearch && matchesFilter;
+  });
+  const hasActiveFilters = normalizedSearchQuery.length > 0 || taskFilter !== 'all';
 
   return (
     <section>
@@ -258,6 +279,60 @@ function TaskManager({ selectedProject }) {
         </p>
       )}
 
+      <div className="mt-5 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative min-w-0 flex-1 sm:max-w-xs">
+          <label className="sr-only" htmlFor="task-search">
+            Tìm task theo tên
+          </label>
+          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+            ⌕
+          </span>
+          <input
+            id="task-search"
+            type="search"
+            value={searchQuery}
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pr-3 pl-9 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+            placeholder="Tìm task theo tên..."
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+        </div>
+
+        <div className="flex gap-1 overflow-x-auto" aria-label="Lọc task">
+          {TASK_FILTERS.map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                taskFilter === filter.value
+                  ? 'bg-slate-900 text-white'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+              }`}
+              onClick={() => setTaskFilter(filter.value)}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {!isLoading && !loadError && hasActiveFilters && (
+        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-500">
+          <span>
+            Hiển thị {visibleTasks.length}/{tasks.length} task
+          </span>
+          <button
+            type="button"
+            className="font-semibold text-indigo-600 hover:text-indigo-500"
+            onClick={() => {
+              setSearchQuery('');
+              setTaskFilter('all');
+            }}
+          >
+            Xóa bộ lọc
+          </button>
+        </div>
+      )}
+
       {isLoading && (
         <div className="mt-5 grid gap-4 xl:grid-cols-3">
           {[1, 2, 3].map((item) => (
@@ -282,7 +357,7 @@ function TaskManager({ selectedProject }) {
       {!isLoading && !loadError && (
         <div className="mt-5 grid gap-4 xl:grid-cols-3">
           {Object.entries(STATUS_CONFIG).map(([status, config]) => {
-            const statusTasks = tasks.filter((task) => task.status === status);
+            const statusTasks = visibleTasks.filter((task) => task.status === status);
 
             return (
               <div key={status} className="rounded-xl bg-slate-100/80 p-3">
