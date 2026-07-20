@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import ConfirmDialog from '../../components/ConfirmDialog';
 import Modal from '../../components/Modal';
 import {
   createTask,
@@ -53,6 +54,7 @@ function TaskManager({ selectedProject }) {
   const [editingTask, setEditingTask] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [taskFilter, setTaskFilter] = useState('all');
+  const [taskToDelete, setTaskToDelete] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
@@ -201,21 +203,29 @@ function TaskManager({ selectedProject }) {
     }
   }
 
-  async function handleDelete(task) {
-    if (!window.confirm(`Xóa task “${task.title}”?`)) {
+  function handleDelete(task) {
+    setTaskToDelete(task);
+    setActionError('');
+  }
+
+  async function confirmDelete() {
+    if (!taskToDelete) {
       return;
     }
 
-    setDeletingTaskId(task.id);
+    setDeletingTaskId(taskToDelete.id);
     setActionError('');
 
     try {
-      await deleteTask(task.id);
-      setTasks((currentTasks) => currentTasks.filter((currentTask) => currentTask.id !== task.id));
+      await deleteTask(taskToDelete.id);
+      setTasks((currentTasks) =>
+        currentTasks.filter((currentTask) => currentTask.id !== taskToDelete.id),
+      );
     } catch (error) {
       setActionError(error.message);
     } finally {
       setDeletingTaskId(null);
+      setTaskToDelete(null);
     }
   }
 
@@ -551,6 +561,17 @@ function TaskManager({ selectedProject }) {
             </div>
           </form>
         </Modal>
+      )}
+
+      {taskToDelete && (
+        <ConfirmDialog
+          title={`Xóa task “${taskToDelete.title}”?`}
+          description="Task sẽ bị xóa vĩnh viễn khỏi project. Hành động này không thể hoàn tác."
+          confirmLabel="Xóa task"
+          isConfirming={deletingTaskId === taskToDelete.id}
+          onCancel={() => setTaskToDelete(null)}
+          onConfirm={confirmDelete}
+        />
       )}
     </section>
   );

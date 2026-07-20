@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import ConfirmDialog from '../../components/ConfirmDialog';
 import Modal from '../../components/Modal';
 import {
   createProject,
@@ -33,6 +34,7 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
+  const [projectToDelete, setProjectToDelete] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingProjectId, setDeletingProjectId] = useState(null);
@@ -171,31 +173,33 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
     }
   }
 
-  async function handleDelete(project) {
-    const shouldDelete = window.confirm(
-      `Xóa project “${project.title}”? Các task liên quan cũng sẽ bị xóa.`,
-    );
+  function handleDelete(project) {
+    setProjectToDelete(project);
+    setActionError('');
+  }
 
-    if (!shouldDelete) {
+  async function confirmDelete() {
+    if (!projectToDelete) {
       return;
     }
 
-    setDeletingProjectId(project.id);
+    setDeletingProjectId(projectToDelete.id);
     setActionError('');
 
     try {
-      await deleteProject(project.id);
+      await deleteProject(projectToDelete.id);
       setProjects((currentProjects) =>
-        currentProjects.filter((currentProject) => currentProject.id !== project.id),
+        currentProjects.filter((currentProject) => currentProject.id !== projectToDelete.id),
       );
 
-      if (selectedProjectId === project.id) {
+      if (selectedProjectId === projectToDelete.id) {
         onSelectProject(null);
       }
     } catch (error) {
       setActionError(error.message);
     } finally {
       setDeletingProjectId(null);
+      setProjectToDelete(null);
     }
   }
 
@@ -404,6 +408,17 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
             </div>
           </form>
         </Modal>
+      )}
+
+      {projectToDelete && (
+        <ConfirmDialog
+          title={`Xóa project “${projectToDelete.title}”?`}
+          description="Mọi task thuộc project này cũng sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác."
+          confirmLabel="Xóa project"
+          isConfirming={deletingProjectId === projectToDelete.id}
+          onCancel={() => setProjectToDelete(null)}
+          onConfirm={confirmDelete}
+        />
       )}
     </section>
   );
