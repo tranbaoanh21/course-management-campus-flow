@@ -2,11 +2,11 @@
   "info": {
     "_postman_id": "52b2d04d-1f76-4a50-8f66-0b00c19b7a21",
     "name": "CampusFlow API - Phase 1",
-    "description": "Version-controlled API tests for the implemented CampusFlow health, course, and project endpoints. Run folders in order. The Cleanup folder removes records created by this collection.",
+    "description": "Version-controlled API tests for the CampusFlow Phase 1 endpoints. Run folders in order. The Cleanup folder removes records created by this collection.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": {
       "major": 1,
-      "minor": 0,
+      "minor": 1,
       "patch": 0
     }
   },
@@ -300,9 +300,243 @@
       ]
     },
     {
-      "name": "99 - Cleanup",
-      "description": "Destructive test cleanup. Run only after the create requests have populated project_id and course_id.",
+      "name": "03 - Tasks",
+      "description": "Task requests use project_id captured by Create project. Create task stores its ID as task_id and verifies the overdue business rule.",
       "item": [
+        {
+          "name": "Create overdue task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Test Task {{$timestamp}}\",\n  \"description\": \"Created by the CampusFlow Postman collection.\",\n  \"status\": \"todo\",\n  \"due_date\": \"2020-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/projects/{{project_id}}/tasks",
+            "description": "Creates an unfinished task with a past due date, verifies is_overdue, and stores response.data.id in task_id."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Past unfinished task is overdue', function () {",
+                  "  pm.expect(body.data.id).to.be.a('number');",
+                  "  pm.expect(String(body.data.project_id)).to.eql(String(pm.environment.get('project_id')));",
+                  "  pm.expect(body.data.status).to.eql('todo');",
+                  "  pm.expect(body.data.is_overdue).to.eql(true);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201 && body.data?.id) {",
+                  "  pm.environment.set('task_id', body.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List tasks by project",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/projects/{{project_id}}/tasks"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Created task is returned', function () {",
+                  "  const tasks = pm.response.json().data;",
+                  "  pm.expect(tasks).to.be.an('array');",
+                  "  pm.expect(tasks.some((task) => String(task.id) === String(pm.environment.get('task_id')))).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark task as done",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"done\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/tasks/{{task_id}}/status",
+            "description": "Marks the captured task as done and verifies that a completed task is no longer overdue."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Done task is not overdue', function () {",
+                  "  const task = pm.response.json().data;",
+                  "  pm.expect(task.status).to.eql('done');",
+                  "  pm.expect(task.is_overdue).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject invalid task status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"blocked\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/tasks/{{task_id}}/status",
+            "description": "Negative test for the allowed task statuses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Status validation error is returned', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.message).to.eql('Validation failed.');",
+                  "  pm.expect(body.errors.status).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject missing task fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"\",\n  \"description\": null,\n  \"status\": \"\",\n  \"due_date\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/projects/{{project_id}}/tasks",
+            "description": "Negative test for required task title, status, and due date."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Required task field errors are returned', function () {",
+                  "  const errors = pm.response.json().errors;",
+                  "  pm.expect(errors.title).to.be.a('string');",
+                  "  pm.expect(errors.status).to.be.a('string');",
+                  "  pm.expect(errors.due_date).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "99 - Cleanup",
+      "description": "Destructive test cleanup. Run only after the create requests have populated task_id, project_id, and course_id.",
+      "item": [
+        {
+          "name": "Delete test task",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/tasks/{{task_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Task deletion is confirmed', function () {",
+                  "  pm.expect(pm.response.json().message).to.eql('Task deleted successfully.');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
         {
           "name": "Delete test project",
           "request": {

@@ -21,9 +21,10 @@ Run the folders in numeric order:
 1. `00 - Health`
 2. `01 - Courses`
 3. `02 - Projects`
-4. `99 - Cleanup`
+4. `03 - Tasks`
+5. `99 - Cleanup`
 
-The create requests automatically store `course_id` and `project_id` in the active environment. Cleanup deletes only the records referenced by those variables.
+The create requests automatically store `course_id`, `project_id`, and `task_id` in the active environment. Cleanup deletes only the records referenced by those variables.
 
 You can also run the entire collection with Collection Runner. The final Cleanup folder removes the test project and course created during the run.
 
