@@ -1,0 +1,27 @@
+erDiagram
+    direction LR
+
+    COURSES ||--o{ PROJECTS : has
+    PROJECTS ||--o{ TASKS : has
+
+    COURSES {
+        int id PK
+        string name
+    }
+
+    PROJECTS {
+        int id PK
+        int course_id FK "ON DELETE CASCADE"
+        string title
+        text description "Nullable"
+        date due_date
+    }
+
+    TASKS {
+        int id PK
+        int project_id FK "ON DELETE CASCADE"
+        string title
+        text description "Nullable"
+        string status "todo | in-progress | done"
+        date due_date
+    }
