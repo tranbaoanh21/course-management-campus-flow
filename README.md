@@ -1,16 +1,18 @@
 # CampusFlow
 
-CampusFlow is a full-stack web application for managing student courses, projects, tasks, deadlines, and progress. Phase 1 is a working MVP with data persisted in MySQL.
+CampusFlow is a full-stack web application for managing student courses, projects, tasks, deadlines, and progress. Phase 1 and the Phase 1.5 product-polish milestone are complete, with data persisted in MySQL.
 
 ## Features
 
-- Create, list, and delete courses.
-- Create, list, and delete projects inside a course.
-- Create, list, update status, and delete tasks inside a project.
+- Create, list, edit, and delete courses.
+- Create, list, edit, and delete projects inside a course.
+- Create, list, edit, update status, and delete tasks inside a project.
+- Search tasks by title and filter them by status or overdue state.
 - Mark unfinished tasks with a due date before today as overdue.
 - Validate required fields on both the frontend and backend.
-- Show loading, error, and empty states in the UI.
+- Show loading, error, empty, confirmation, and success-feedback states in the UI.
 - Cascade deletes from course to project to task through MySQL foreign keys.
+- Run version-controlled Postman regression tests and backend validation unit tests.
 
 ## Stack
 
@@ -18,6 +20,7 @@ CampusFlow is a full-stack web application for managing student courses, project
 - Backend: Node.js, Express
 - Database: MySQL with `mysql2`
 - API testing: Postman
+- Automated testing: Node.js built-in test runner
 - Code quality: ESLint and Prettier
 
 ## Repository structure
@@ -127,11 +130,12 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 ## Documentation
 
 - `docs/requirements.md` — Phase 1 product requirements
+- `docs/phase-1.5.md` — product-polish scope and completion status
 - `docs/erd.mmd` — Mermaid entity relationship diagram
 - `docs/api.md` — REST API contract
 - `docs/test-cases.md` — manual acceptance checklist
 - `docs/postman/README.md` — Postman workflow
 
-## Phase 1 status
+## Project status
 
-The core Phase 1 MVP is complete. Authentication, collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
+Phase 1 MVP and Phase 1.5 Product Polish are complete. Authentication, collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
