@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 
 import Modal from '../../components/Modal';
-import { createTask, deleteTask, getTasks, updateTaskStatus } from '../../services/taskApi';
+import {
+  createTask,
+  deleteTask,
+  getTasks,
+  updateTask,
+  updateTaskStatus,
+} from '../../services/taskApi';
 
 const EMPTY_FORM = {
   title: '',
@@ -36,6 +42,7 @@ function TaskManager({ selectedProject }) {
   const [tasks, setTasks] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
@@ -91,8 +98,31 @@ function TaskManager({ selectedProject }) {
 
   function closeForm() {
     setShowForm(false);
+    setEditingTask(null);
+    setForm(EMPTY_FORM);
     setFormErrors({});
     setActionError('');
+  }
+
+  function openCreateForm() {
+    setEditingTask(null);
+    setForm(EMPTY_FORM);
+    setFormErrors({});
+    setActionError('');
+    setShowForm(true);
+  }
+
+  function openEditForm(task) {
+    setEditingTask(task);
+    setForm({
+      title: task.title,
+      description: task.description || '',
+      status: task.status,
+      due_date: task.due_date,
+    });
+    setFormErrors({});
+    setActionError('');
+    setShowForm(true);
   }
 
   async function handleSubmit(event) {
@@ -117,16 +147,26 @@ function TaskManager({ selectedProject }) {
     setActionError('');
 
     try {
-      const newTask = await createTask(selectedProject.id, {
+      const taskInput = {
         title: form.title.trim(),
         description: form.description.trim() || null,
         status: form.status,
         due_date: form.due_date,
-      });
+      };
 
-      setTasks((currentTasks) => [...currentTasks, newTask]);
-      setForm(EMPTY_FORM);
-      setShowForm(false);
+      if (editingTask) {
+        const updatedTask = await updateTask(editingTask.id, taskInput);
+
+        setTasks((currentTasks) =>
+          currentTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)),
+        );
+      } else {
+        const newTask = await createTask(selectedProject.id, taskInput);
+
+        setTasks((currentTasks) => [...currentTasks, newTask]);
+      }
+
+      closeForm();
     } catch (error) {
       setFormErrors(error.fieldErrors || {});
       setActionError(error.message);
@@ -206,7 +246,7 @@ function TaskManager({ selectedProject }) {
         <button
           type="button"
           className="self-start rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 sm:self-auto"
-          onClick={() => setShowForm(true)}
+          onClick={openCreateForm}
         >
           + Thêm task
         </button>
@@ -266,15 +306,25 @@ function TaskManager({ selectedProject }) {
                       >
                         <div className="flex items-start justify-between gap-3">
                           <h4 className="font-medium leading-6 text-slate-900">{task.title}</h4>
-                          <button
-                            type="button"
-                            aria-label={`Xóa ${task.title}`}
-                            className="text-lg leading-none text-slate-300 transition hover:text-red-600 disabled:opacity-50"
-                            disabled={deletingTaskId === task.id}
-                            onClick={() => handleDelete(task)}
-                          >
-                            ×
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              aria-label={`Sửa ${task.title}`}
+                              className="text-xs font-semibold text-slate-400 transition hover:text-indigo-600"
+                              onClick={() => openEditForm(task)}
+                            >
+                              Sửa
+                            </button>
+                            <button
+                              type="button"
+                              aria-label={`Xóa ${task.title}`}
+                              className="text-lg leading-none text-slate-300 transition hover:text-red-600 disabled:opacity-50"
+                              disabled={deletingTaskId === task.id}
+                              onClick={() => handleDelete(task)}
+                            >
+                              ×
+                            </button>
+                          </div>
                         </div>
 
                         {task.description && (
@@ -324,8 +374,12 @@ function TaskManager({ selectedProject }) {
 
       {showForm && (
         <Modal
-          title="Tạo task mới"
-          description={`Task sẽ được thêm vào project ${selectedProject.title}.`}
+          title={editingTask ? 'Chỉnh sửa task' : 'Tạo task mới'}
+          description={
+            editingTask
+              ? 'Cập nhật nội dung, trạng thái hoặc deadline của task.'
+              : `Task sẽ được thêm vào project ${selectedProject.title}.`
+          }
           onClose={closeForm}
         >
           <form className="space-y-4" onSubmit={handleSubmit}>
@@ -417,7 +471,7 @@ function TaskManager({ selectedProject }) {
                 className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Đang tạo...' : 'Tạo task'}
+                {isSubmitting ? 'Đang lưu...' : editingTask ? 'Lưu thay đổi' : 'Tạo task'}
               </button>
             </div>
           </form>

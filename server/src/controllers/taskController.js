@@ -16,6 +16,30 @@ function isValidDateString(value) {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
+function validateTaskInput({ title, description, status, dueDate }) {
+  const errors = {};
+
+  if (typeof title !== 'string' || title.trim().length === 0) {
+    errors.title = 'Title is required.';
+  } else if (title.trim().length > 200) {
+    errors.title = 'Title must not exceed 200 characters.';
+  }
+
+  if (description !== undefined && description !== null && typeof description !== 'string') {
+    errors.description = 'Description must be a string or null.';
+  }
+
+  if (!VALID_STATUSES.includes(status)) {
+    errors.status = 'Status must be todo, in-progress, or done.';
+  }
+
+  if (!isValidDateString(dueDate)) {
+    errors.due_date = 'Due date must be a valid date in YYYY-MM-DD format.';
+  }
+
+  return errors;
+}
+
 async function projectExists(projectId) {
   const [projects] = await pool.execute('SELECT id FROM projects WHERE id = ?', [projectId]);
   return projects.length > 0;
@@ -85,25 +109,7 @@ async function createTask(request, response) {
   }
 
   const { title, description, status, due_date: dueDate } = request.body;
-  const errors = {};
-
-  if (typeof title !== 'string' || title.trim().length === 0) {
-    errors.title = 'Title is required.';
-  } else if (title.trim().length > 200) {
-    errors.title = 'Title must not exceed 200 characters.';
-  }
-
-  if (description !== undefined && description !== null && typeof description !== 'string') {
-    errors.description = 'Description must be a string or null.';
-  }
-
-  if (!VALID_STATUSES.includes(status)) {
-    errors.status = 'Status must be todo, in-progress, or done.';
-  }
-
-  if (!isValidDateString(dueDate)) {
-    errors.due_date = 'Due date must be a valid date in YYYY-MM-DD format.';
-  }
+  const errors = validateTaskInput({ title, description, status, dueDate });
 
   if (Object.keys(errors).length > 0) {
     return response.status(400).json({
@@ -123,6 +129,43 @@ async function createTask(request, response) {
 
   return response.status(201).json({
     data: task,
+  });
+}
+
+async function updateTask(request, response) {
+  const taskId = parsePositiveInteger(request.params.task_id);
+
+  if (!taskId) {
+    return response.status(400).json({
+      message: 'Invalid task ID.',
+    });
+  }
+
+  if (!(await findTask(taskId))) {
+    return response.status(404).json({
+      message: 'Task not found.',
+    });
+  }
+
+  const { title, description, status, due_date: dueDate } = request.body;
+  const errors = validateTaskInput({ title, description, status, dueDate });
+
+  if (Object.keys(errors).length > 0) {
+    return response.status(400).json({
+      message: 'Validation failed.',
+      errors,
+    });
+  }
+
+  await pool.execute(
+    `UPDATE tasks
+     SET title = ?, description = ?, status = ?, due_date = ?
+     WHERE id = ?`,
+    [title.trim(), description?.trim() || null, status, dueDate, taskId],
+  );
+
+  return response.status(200).json({
+    data: await findTask(taskId),
   });
 }
 
@@ -184,6 +227,7 @@ async function deleteTask(request, response) {
 module.exports = {
   getTasksByProject,
   createTask,
+  updateTask,
   updateTaskStatus,
   deleteTask,
 };

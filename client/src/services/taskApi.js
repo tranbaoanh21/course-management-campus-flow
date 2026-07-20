@@ -29,6 +29,18 @@ export async function updateTaskStatus(taskId, status) {
   return result.data;
 }
 
+export async function updateTask(taskId, task) {
+  const result = await request(`/tasks/${taskId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(task),
+  });
+
+  return result.data;
+}
+
 export async function deleteTask(taskId) {
   return request(`/tasks/${taskId}`, {
     method: 'DELETE',

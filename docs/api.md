@@ -67,6 +67,7 @@ Field `errors` chỉ xuất hiện khi có lỗi validation theo từng field.
 | `DELETE` | `/api/projects/:project_id`        | Xóa project              |
 | `GET`    | `/api/projects/:project_id/tasks`  | Lấy task theo project    |
 | `POST`   | `/api/projects/:project_id/tasks`  | Tạo task trong project   |
+| `PATCH`  | `/api/tasks/:task_id`              | Chỉnh sửa task           |
 | `PATCH`  | `/api/tasks/:task_id/status`       | Cập nhật status của task |
 | `DELETE` | `/api/tasks/:task_id`              | Xóa task                 |
 
@@ -438,6 +439,47 @@ Tạo task trong một project đã tồn tại.
 ```json
 {
   "message": "Project not found."
+}
+```
+
+### `PATCH /api/tasks/:task_id`
+
+Chỉnh sửa title, description, status và due date của task. Project sở hữu task không thay đổi.
+
+#### Request body
+
+```json
+{
+  "title": "Update ERD",
+  "description": "Add cardinality and foreign keys.",
+  "status": "in-progress",
+  "due_date": "2026-08-12"
+}
+```
+
+Validation của các field giống endpoint tạo task.
+
+#### Response `200 OK`
+
+```json
+{
+  "data": {
+    "id": 1,
+    "project_id": 1,
+    "title": "Update ERD",
+    "description": "Add cardinality and foreign keys.",
+    "status": "in-progress",
+    "due_date": "2026-08-12",
+    "is_overdue": false
+  }
+}
+```
+
+#### Response `404 Not Found`
+
+```json
+{
+  "message": "Task not found."
 }
 ```
 
