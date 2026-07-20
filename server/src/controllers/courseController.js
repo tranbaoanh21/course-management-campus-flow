@@ -1,21 +1,5 @@
 const { pool } = require('../config/db');
-
-function parsePositiveInteger(value) {
-  const parsedValue = Number(value);
-  return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null;
-}
-
-function validateCourseName(name) {
-  if (typeof name !== 'string' || name.trim().length === 0) {
-    return 'Name is required.';
-  }
-
-  if (name.trim().length > 150) {
-    return 'Name must not exceed 150 characters.';
-  }
-
-  return null;
-}
+const { parsePositiveInteger, validateCourseName } = require('../utils/validation');
 
 async function getCourses(request, response) {
   const [courses] = await pool.query('SELECT id, name FROM courses ORDER BY id DESC');

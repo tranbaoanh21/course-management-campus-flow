@@ -8,7 +8,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 export default defineConfig([
   globalIgnores(['**/node_modules/**', 'client/dist/**', 'server/.env', 'client/.env']),
   {
-    files: ['server/src/**/*.js'],
+    files: ['server/{src,test}/**/*.js'],
     extends: [js.configs.recommended],
     languageOptions: {
       ecmaVersion: 'latest',

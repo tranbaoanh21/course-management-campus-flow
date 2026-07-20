@@ -119,9 +119,10 @@ Install the shared development dependencies once at the repository root, then ru
 npm install
 npm run lint
 npm run format:check
+npm run test:server
 ```
 
-Use `npm run format` to apply Prettier formatting. Manual acceptance scenarios are documented in `docs/test-cases.md`.
+Use `npm run format` to apply Prettier formatting. Backend validation tests use the Node.js built-in test runner and do not require MySQL. Manual acceptance scenarios are documented in `docs/test-cases.md`.
 
 ## Documentation
 

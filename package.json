@@ -5,9 +5,10 @@
   "description": "Shared development tools for the CampusFlow repository",
   "type": "module",
   "scripts": {
-    "lint": "eslint client/src server/src",
+    "lint": "eslint client/src server/src server/test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:server": "npm test --prefix server"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
