@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Modal from '../../components/Modal';
+import useToast from '../../hooks/useToast';
 import {
   createProject,
   deleteProject,
@@ -30,6 +31,7 @@ function sortProjects(projects) {
 }
 
 function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) {
+  const { showToast } = useToast();
   const [projects, setProjects] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
@@ -157,11 +159,14 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
         if (selectedProjectId === updatedProject.id) {
           onSelectProject(updatedProject);
         }
+
+        showToast('Project đã được cập nhật.');
       } else {
         const newProject = await createProject(selectedCourse.id, projectInput);
 
         setProjects((currentProjects) => sortProjects([...currentProjects, newProject]));
         onSelectProject(newProject);
+        showToast('Project đã được tạo.');
       }
 
       closeForm();
@@ -195,6 +200,8 @@ function ProjectManager({ selectedCourse, selectedProjectId, onSelectProject }) 
       if (selectedProjectId === projectToDelete.id) {
         onSelectProject(null);
       }
+
+      showToast('Project đã được xóa.');
     } catch (error) {
       setActionError(error.message);
     } finally {

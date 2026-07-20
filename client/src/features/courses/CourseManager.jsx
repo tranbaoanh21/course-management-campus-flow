@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 
 import ConfirmDialog from '../../components/ConfirmDialog';
+import useToast from '../../hooks/useToast';
 import { createCourse, deleteCourse, getCourses, updateCourse } from '../../services/courseApi';
 
 function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
+  const { showToast } = useToast();
   const [courses, setCourses] = useState([]);
   const [name, setName] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -71,6 +73,7 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
       setName('');
       setShowForm(false);
       onSelectCourse(newCourse);
+      showToast('Course đã được tạo.');
     } catch (error) {
       setFormError(error.fieldErrors?.name || error.message);
     } finally {
@@ -100,6 +103,8 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
       if (selectedCourseId === courseToDelete.id) {
         onSelectCourse(null);
       }
+
+      showToast('Course đã được xóa.');
     } catch (error) {
       setActionError(error.message);
     } finally {
@@ -140,6 +145,7 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
       );
       onUpdateCourse(updatedCourse);
       stopEditing();
+      showToast('Tên course đã được cập nhật.');
     } catch (error) {
       setEditError(error.fieldErrors?.name || error.message);
     } finally {

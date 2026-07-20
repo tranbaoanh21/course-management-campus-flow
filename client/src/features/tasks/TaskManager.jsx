@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Modal from '../../components/Modal';
+import useToast from '../../hooks/useToast';
 import {
   createTask,
   deleteTask,
@@ -48,6 +49,7 @@ function formatDate(dateString) {
 }
 
 function TaskManager({ selectedProject }) {
+  const { showToast } = useToast();
   const [tasks, setTasks] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
@@ -172,10 +174,12 @@ function TaskManager({ selectedProject }) {
         setTasks((currentTasks) =>
           currentTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)),
         );
+        showToast('Task đã được cập nhật.');
       } else {
         const newTask = await createTask(selectedProject.id, taskInput);
 
         setTasks((currentTasks) => [...currentTasks, newTask]);
+        showToast('Task đã được tạo.');
       }
 
       closeForm();
@@ -196,6 +200,7 @@ function TaskManager({ selectedProject }) {
       setTasks((currentTasks) =>
         currentTasks.map((task) => (task.id === taskId ? updatedTask : task)),
       );
+      showToast(`Task đã chuyển sang ${STATUS_CONFIG[status].label.toLocaleLowerCase('vi')}.`);
     } catch (error) {
       setActionError(error.message);
     } finally {
@@ -221,6 +226,7 @@ function TaskManager({ selectedProject }) {
       setTasks((currentTasks) =>
         currentTasks.filter((currentTask) => currentTask.id !== taskToDelete.id),
       );
+      showToast('Task đã được xóa.');
     } catch (error) {
       setActionError(error.message);
     } finally {
