@@ -59,6 +59,7 @@ Field `errors` chỉ xuất hiện khi có lỗi validation theo từng field.
 | `GET`    | `/api/health`                      | Kiểm tra API và database |
 | `GET`    | `/api/courses`                     | Lấy danh sách course     |
 | `POST`   | `/api/courses`                     | Tạo course               |
+| `PATCH`  | `/api/courses/:course_id`          | Đổi tên course           |
 | `DELETE` | `/api/courses/:course_id`          | Xóa course               |
 | `GET`    | `/api/courses/:course_id/projects` | Lấy project theo course  |
 | `POST`   | `/api/courses/:course_id/projects` | Tạo project trong course |
@@ -170,6 +171,39 @@ Xóa course. MySQL đồng thời xóa các project và task liên quan bằng `
 ```json
 {
   "message": "Course deleted successfully."
+}
+```
+
+#### Response `404 Not Found`
+
+```json
+{
+  "message": "Course not found."
+}
+```
+
+### `PATCH /api/courses/:course_id`
+
+Đổi tên một course đã tồn tại. Các project và task bên trong không thay đổi.
+
+#### Request body
+
+```json
+{
+  "name": "Advanced Database Systems"
+}
+```
+
+Validation của `name` giống endpoint tạo course.
+
+#### Response `200 OK`
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Advanced Database Systems"
+  }
 }
 ```
 

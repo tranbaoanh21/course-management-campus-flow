@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 
-import { createCourse, deleteCourse, getCourses } from '../../services/courseApi';
+import { createCourse, deleteCourse, getCourses, updateCourse } from '../../services/courseApi';
 
-function CourseManager({ selectedCourseId, onSelectCourse }) {
+function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
   const [courses, setCourses] = useState([]);
   const [name, setName] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingCourseId, setEditingCourseId] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
   const [deletingCourseId, setDeletingCourseId] = useState(null);
   const [loadError, setLoadError] = useState('');
   const [formError, setFormError] = useState('');
+  const [editError, setEditError] = useState('');
   const [actionError, setActionError] = useState('');
   const [reloadCount, setReloadCount] = useState(0);
 
@@ -100,6 +104,45 @@ function CourseManager({ selectedCourseId, onSelectCourse }) {
     }
   }
 
+  function startEditing(course) {
+    setEditingCourseId(course.id);
+    setEditName(course.name);
+    setEditError('');
+    setActionError('');
+  }
+
+  function stopEditing() {
+    setEditingCourseId(null);
+    setEditName('');
+    setEditError('');
+  }
+
+  async function handleUpdate(event, courseId) {
+    event.preventDefault();
+    const trimmedName = editName.trim();
+
+    if (!trimmedName) {
+      setEditError('Tên course là bắt buộc.');
+      return;
+    }
+
+    setIsUpdating(true);
+    setEditError('');
+
+    try {
+      const updatedCourse = await updateCourse(courseId, trimmedName);
+      setCourses((currentCourses) =>
+        currentCourses.map((course) => (course.id === courseId ? updatedCourse : course)),
+      );
+      onUpdateCourse(updatedCourse);
+      stopEditing();
+    } catch (error) {
+      setEditError(error.fieldErrors?.name || error.message);
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
   return (
     <aside className="border-b border-slate-200 bg-white px-4 py-5 sm:px-6 lg:border-r lg:border-b-0 lg:px-4 lg:py-6">
       <div className="flex items-center justify-between gap-3 px-2">
@@ -186,39 +229,83 @@ function CourseManager({ selectedCourseId, onSelectCourse }) {
           <ul className="flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-1 lg:overflow-visible">
             {courses.map((course) => (
               <li key={course.id} className="group min-w-52 lg:min-w-0">
-                <div
-                  className={`flex items-center gap-2 rounded-xl p-1.5 transition ${
-                    selectedCourseId === course.id
-                      ? 'bg-indigo-50 text-indigo-700'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <button
-                    type="button"
-                    className="flex min-w-0 flex-1 items-center gap-3 px-1.5 py-1 text-left"
-                    onClick={() => onSelectCourse(course)}
+                {editingCourseId === course.id ? (
+                  <form
+                    className="rounded-xl border border-indigo-200 bg-indigo-50 p-2"
+                    onSubmit={(event) => handleUpdate(event, course.id)}
                   >
-                    <span
-                      className={`grid size-8 shrink-0 place-items-center rounded-lg text-xs font-bold ${
-                        selectedCourseId === course.id
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-slate-100 text-slate-500'
-                      }`}
+                    <input
+                      type="text"
+                      value={editName}
+                      maxLength={150}
+                      autoFocus
+                      aria-label={`Tên mới của ${course.name}`}
+                      className="w-full rounded-lg border border-indigo-200 bg-white px-2.5 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                      onChange={(event) => setEditName(event.target.value)}
+                    />
+                    {editError && <p className="mt-1.5 text-xs text-red-600">{editError}</p>}
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        type="submit"
+                        className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                        disabled={isUpdating}
+                      >
+                        {isUpdating ? 'Đang lưu...' : 'Lưu'}
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:bg-white"
+                        onClick={stopEditing}
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div
+                    className={`flex items-center gap-1 rounded-xl p-1.5 transition ${
+                      selectedCourseId === course.id
+                        ? 'bg-indigo-50 text-indigo-700'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      className="flex min-w-0 flex-1 items-center gap-3 px-1.5 py-1 text-left"
+                      onClick={() => onSelectCourse(course)}
                     >
-                      {course.name.slice(0, 2).toUpperCase()}
-                    </span>
-                    <span className="truncate text-sm font-medium">{course.name}</span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`Xóa ${course.name}`}
-                    className="rounded-md px-2 py-1 text-xs font-medium text-slate-400 opacity-100 transition hover:bg-red-50 hover:text-red-600 lg:opacity-0 lg:group-hover:opacity-100"
-                    disabled={deletingCourseId === course.id}
-                    onClick={() => handleDelete(course)}
-                  >
-                    {deletingCourseId === course.id ? '...' : 'Xóa'}
-                  </button>
-                </div>
+                      <span
+                        className={`grid size-8 shrink-0 place-items-center rounded-lg text-xs font-bold ${
+                          selectedCourseId === course.id
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-slate-100 text-slate-500'
+                        }`}
+                      >
+                        {course.name.slice(0, 2).toUpperCase()}
+                      </span>
+                      <span className="truncate text-sm font-medium">{course.name}</span>
+                    </button>
+                    <div className="flex opacity-100 transition lg:opacity-0 lg:group-hover:opacity-100">
+                      <button
+                        type="button"
+                        aria-label={`Sửa ${course.name}`}
+                        className="rounded-md px-1.5 py-1 text-xs font-medium text-slate-400 hover:bg-white hover:text-indigo-600"
+                        onClick={() => startEditing(course)}
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Xóa ${course.name}`}
+                        className="rounded-md px-1.5 py-1 text-xs font-medium text-slate-400 hover:bg-red-50 hover:text-red-600"
+                        disabled={deletingCourseId === course.id}
+                        onClick={() => handleDelete(course)}
+                      >
+                        {deletingCourseId === course.id ? '...' : 'Xóa'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

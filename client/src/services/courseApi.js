@@ -17,6 +17,18 @@ export async function createCourse(name) {
   return result.data;
 }
 
+export async function updateCourse(courseId, name) {
+  const result = await request(`/courses/${courseId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  return result.data;
+}
+
 export async function deleteCourse(courseId) {
   return request(`/courses/${courseId}`, {
     method: 'DELETE',

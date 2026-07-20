@@ -13,6 +13,12 @@ function App() {
     setSelectedProject(null);
   }
 
+  function handleUpdateCourse(course) {
+    setSelectedCourse((currentCourse) =>
+      currentCourse?.id === course.id ? course : currentCourse,
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f7f8fa] text-slate-900">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -27,13 +33,17 @@ function App() {
             </div>
           </div>
           <span className="hidden rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 sm:block">
-            Phase 1 · Local workspace
+            Phase 1.5 · Product polish
           </span>
         </div>
       </header>
 
       <div className="mx-auto grid max-w-[1440px] lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[17.5rem_minmax(0,1fr)]">
-        <CourseManager selectedCourseId={selectedCourse?.id} onSelectCourse={handleSelectCourse} />
+        <CourseManager
+          selectedCourseId={selectedCourse?.id}
+          onSelectCourse={handleSelectCourse}
+          onUpdateCourse={handleUpdateCourse}
+        />
 
         <main className="min-w-0 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {!selectedCourse ? (

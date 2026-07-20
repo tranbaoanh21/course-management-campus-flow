@@ -1,5 +1,22 @@
 const { pool } = require('../config/db');
 
+function parsePositiveInteger(value) {
+  const parsedValue = Number(value);
+  return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function validateCourseName(name) {
+  if (typeof name !== 'string' || name.trim().length === 0) {
+    return 'Name is required.';
+  }
+
+  if (name.trim().length > 150) {
+    return 'Name must not exceed 150 characters.';
+  }
+
+  return null;
+}
+
 async function getCourses(request, response) {
   const [courses] = await pool.query('SELECT id, name FROM courses ORDER BY id DESC');
 
@@ -11,13 +28,10 @@ async function getCourses(request, response) {
 async function createCourse(request, response) {
   const { name } = request.body;
   const errors = {};
+  const nameError = validateCourseName(name);
 
-  if (typeof name !== 'string') {
-    errors.name = 'Name is required.';
-  } else if (name.trim().length === 0) {
-    errors.name = 'Name is required.';
-  } else if (name.trim().length > 150) {
-    errors.name = 'Name must not exceed 150 characters.';
+  if (nameError) {
+    errors.name = nameError;
   }
 
   if (Object.keys(errors).length > 0) {
@@ -38,10 +52,51 @@ async function createCourse(request, response) {
   });
 }
 
-async function deleteCourse(request, response) {
-  const courseId = Number(request.params.course_id);
+async function updateCourse(request, response) {
+  const courseId = parsePositiveInteger(request.params.course_id);
 
-  if (!Number.isInteger(courseId) || courseId <= 0) {
+  if (!courseId) {
+    return response.status(400).json({
+      message: 'Invalid course ID.',
+    });
+  }
+
+  const { name } = request.body;
+  const nameError = validateCourseName(name);
+
+  if (nameError) {
+    return response.status(400).json({
+      message: 'Validation failed.',
+      errors: {
+        name: nameError,
+      },
+    });
+  }
+
+  const trimmedName = name.trim();
+  const [result] = await pool.execute('UPDATE courses SET name = ? WHERE id = ?', [
+    trimmedName,
+    courseId,
+  ]);
+
+  if (result.affectedRows === 0) {
+    return response.status(404).json({
+      message: 'Course not found.',
+    });
+  }
+
+  return response.status(200).json({
+    data: {
+      id: courseId,
+      name: trimmedName,
+    },
+  });
+}
+
+async function deleteCourse(request, response) {
+  const courseId = parsePositiveInteger(request.params.course_id);
+
+  if (!courseId) {
     return response.status(400).json({
       message: 'Invalid course ID.',
     });
@@ -63,5 +118,6 @@ async function deleteCourse(request, response) {
 module.exports = {
   getCourses,
   createCourse,
+  updateCourse,
   deleteCourse,
 };
