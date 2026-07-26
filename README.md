@@ -17,6 +17,7 @@ CampusFlow is a full-stack web application for managing student courses, project
 - Store passwords as salted `scrypt` hashes and sessions in MySQL.
 - Restrict every course, project, and task to its authenticated owner.
 - View workspace totals, completion progress, overdue work, and upcoming deadlines on a personal dashboard.
+- Browse every owned task in a paginated personal planner with search, filters, sorting, and quick status updates.
 
 ## Stack
 
@@ -140,6 +141,7 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 - `docs/phase-1.5.md` — product-polish scope and completion status
 - `docs/phase-2-auth.md` — authentication and data-ownership design
 - `docs/phase-3-dashboard.md` — dashboard and deadline-overview scope
+- `docs/phase-4-planner.md` — global task planner scope
 - `docs/erd.mmd` — Mermaid entity relationship diagram
 - `docs/api.md` — REST API contract
 - `docs/test-cases.md` — manual acceptance checklist
@@ -147,4 +149,4 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 
 ## Project status
 
-Phase 1 MVP, Phase 1.5 Product Polish, Phase 2 Authentication & Data Ownership, and Phase 3 Dashboard & Deadline Overview are complete. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
+Phase 1 MVP through Phase 3 Dashboard & Deadline Overview are complete. Phase 4 Personal Planner is implemented and waiting for local regression. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.

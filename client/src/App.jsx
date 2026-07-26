@@ -3,6 +3,7 @@ import { useState } from 'react';
 import AuthScreen, { AuthLoadingScreen, SessionErrorScreen } from './features/auth/AuthScreen';
 import CourseManager from './features/courses/CourseManager';
 import DashboardOverview from './features/dashboard/DashboardOverview';
+import PersonalPlanner from './features/tasks/PersonalPlanner';
 import ProjectManager from './features/projects/ProjectManager';
 import TaskManager from './features/tasks/TaskManager';
 import useAuth from './hooks/useAuth';
@@ -19,10 +20,12 @@ function getInitials(name) {
 }
 
 function Workspace({ user, isLoggingOut, onLogout }) {
+  const [activeView, setActiveView] = useState('dashboard');
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
 
   function handleSelectCourse(course) {
+    setActiveView(course ? 'course' : 'dashboard');
     setSelectedCourse(course);
     setSelectedProject(null);
   }
@@ -34,6 +37,13 @@ function Workspace({ user, isLoggingOut, onLogout }) {
   }
 
   function handleShowDashboard() {
+    setActiveView('dashboard');
+    setSelectedCourse(null);
+    setSelectedProject(null);
+  }
+
+  function handleShowPlanner() {
+    setActiveView('planner');
     setSelectedCourse(null);
     setSelectedProject(null);
   }
@@ -42,20 +52,46 @@ function Workspace({ user, isLoggingOut, onLogout }) {
     <div className="min-h-screen bg-[#f7f8fa] text-slate-900">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6">
-          <button
-            type="button"
-            className="flex items-center gap-3 rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
-            onClick={handleShowDashboard}
-            aria-label="Mở dashboard"
-          >
-            <div className="grid size-9 place-items-center rounded-xl bg-indigo-600 text-sm font-bold text-white shadow-sm shadow-indigo-200">
-              CF
-            </div>
-            <div>
-              <p className="font-semibold tracking-tight text-slate-950">CampusFlow</p>
-              <p className="text-xs text-slate-500">Không gian học tập cá nhân</p>
-            </div>
-          </button>
+          <div className="flex items-center gap-3 sm:gap-6">
+            <button
+              type="button"
+              className="flex items-center gap-3 rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              onClick={handleShowDashboard}
+              aria-label="Mở dashboard"
+            >
+              <div className="grid size-9 place-items-center rounded-xl bg-indigo-600 text-sm font-bold text-white shadow-sm shadow-indigo-200">
+                CF
+              </div>
+              <div className="hidden sm:block">
+                <p className="font-semibold tracking-tight text-slate-950">CampusFlow</p>
+                <p className="text-xs text-slate-500">Không gian học tập cá nhân</p>
+              </div>
+            </button>
+            <nav className="flex items-center rounded-lg bg-slate-100 p-1" aria-label="Workspace">
+              <button
+                type="button"
+                className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition sm:px-3 ${
+                  activeView === 'dashboard'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+                onClick={handleShowDashboard}
+              >
+                Tổng quan
+              </button>
+              <button
+                type="button"
+                className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition sm:px-3 ${
+                  activeView === 'planner'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+                onClick={handleShowPlanner}
+              >
+                Tất cả task
+              </button>
+            </nav>
+          </div>
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block">
               <p className="text-sm font-semibold text-slate-800">{user.name}</p>
@@ -84,8 +120,10 @@ function Workspace({ user, isLoggingOut, onLogout }) {
         />
 
         <main className="min-w-0 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          {!selectedCourse ? (
+          {activeView === 'dashboard' ? (
             <DashboardOverview user={user} />
+          ) : activeView === 'planner' ? (
+            <PersonalPlanner onOpenCourse={handleSelectCourse} />
           ) : (
             <div>
               <nav
