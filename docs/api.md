@@ -1,4 +1,4 @@
-# CampusFlow — REST API Contract (Phase 1–3)
+# CampusFlow — REST API Contract (Phase 1–4)
 
 ## 1. Quy ước chung
 
@@ -75,6 +75,7 @@ Field `errors` chỉ xuất hiện khi có lỗi validation theo từng field.
 | `POST`   | `/api/courses/:course_id/projects` | Tạo project trong course | Required |
 | `PATCH`  | `/api/projects/:project_id`        | Chỉnh sửa project        | Required |
 | `DELETE` | `/api/projects/:project_id`        | Xóa project              | Required |
+| `GET`    | `/api/tasks`                       | Danh sách task toàn cục  | Required |
 | `GET`    | `/api/projects/:project_id/tasks`  | Lấy task theo project    | Required |
 | `POST`   | `/api/projects/:project_id/tasks`  | Tạo task trong project   | Required |
 | `PATCH`  | `/api/tasks/:task_id`              | Chỉnh sửa task           | Required |
@@ -403,6 +404,50 @@ Validation của các field giống endpoint tạo project.
 ```
 
 ## 8. Task API
+
+### `GET /api/tasks`
+
+Lấy Task thuộc tất cả Course của user hiện tại. Endpoint hỗ trợ search, filter, sort và pagination phía server.
+
+#### Query parameters
+
+| Query     | Mặc định   | Giá trị hợp lệ                     |
+| --------- | ---------- | ---------------------------------- |
+| `search`  | Chuỗi rỗng | Title chứa chuỗi, tối đa 200 ký tự |
+| `status`  | Không lọc  | `todo`, `in-progress`, `done`      |
+| `overdue` | Không lọc  | `true`                             |
+| `sort`    | `due-asc`  | `due-asc`, `due-desc`, `newest`    |
+| `page`    | `1`        | Số nguyên dương                    |
+| `limit`   | `20`       | Số nguyên từ `1` đến `50`          |
+
+#### Response `200 OK`
+
+```json
+{
+  "data": [
+    {
+      "id": 7,
+      "project_id": 2,
+      "title": "Hoàn thành ERD",
+      "description": null,
+      "status": "in-progress",
+      "due_date": "2026-08-15",
+      "project_title": "Database Assignment",
+      "course_id": 1,
+      "course_name": "Database Systems",
+      "is_overdue": false
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "total_pages": 1
+  }
+}
+```
+
+Query không hợp lệ trả `400 Validation failed` và field tương ứng trong `errors`.
 
 ### `GET /api/projects/:project_id/tasks`
 

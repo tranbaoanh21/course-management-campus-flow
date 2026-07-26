@@ -833,7 +833,74 @@
       ]
     },
     {
-      "name": "05 - Dashboard",
+      "name": "05 - Planner",
+      "description": "Checks the authenticated global task list, pagination metadata, filters, and query validation.",
+      "item": [
+        {
+          "name": "List all owned tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/tasks?search=Updated%20Postman%20Task&sort=due-asc&page=1&limit=10",
+            "description": "Finds the task created earlier through the ownership-safe global task endpoint."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Global list includes the owned task and pagination', function () {",
+                  "  const body = pm.response.json();",
+                  "  const taskIds = body.data.map((task) => String(task.id));",
+                  "  pm.expect(taskIds).to.include(String(pm.environment.get('task_id')));",
+                  "  pm.expect(body.pagination.page).to.eql(1);",
+                  "  pm.expect(body.pagination.limit).to.eql(10);",
+                  "  pm.expect(body.pagination.total).to.be.at.least(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject invalid planner query",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/tasks?status=blocked&sort=title&page=0&limit=100",
+            "description": "Verifies whitelist and pagination validation for the global task endpoint."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Every invalid query field is reported', function () {",
+                  "  const errors = pm.response.json().errors;",
+                  "  pm.expect(errors.status).to.be.a('string');",
+                  "  pm.expect(errors.sort).to.be.a('string');",
+                  "  pm.expect(errors.page).to.be.a('string');",
+                  "  pm.expect(errors.limit).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 - Dashboard",
       "description": "Checks the authenticated user's workspace totals, progress, and priority task response.",
       "item": [
         {
@@ -871,7 +938,7 @@
       ]
     },
     {
-      "name": "06 - Ownership",
+      "name": "07 - Ownership",
       "description": "Switches from the owner account to a second user, verifies private resources return 404, then logs the owner back in for cleanup.",
       "item": [
         {
