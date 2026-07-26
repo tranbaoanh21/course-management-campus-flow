@@ -1,8 +1,14 @@
 const { pool } = require('../config/db');
 const { VALID_STATUSES, parsePositiveInteger, validateTaskInput } = require('../utils/validation');
 
-async function projectExists(projectId) {
-  const [projects] = await pool.execute('SELECT id FROM projects WHERE id = ?', [projectId]);
+async function projectExists(projectId, userId) {
+  const [projects] = await pool.execute(
+    `SELECT projects.id
+     FROM projects
+     INNER JOIN courses ON courses.id = projects.course_id
+     WHERE projects.id = ? AND courses.user_id = ?`,
+    [projectId, userId],
+  );
   return projects.length > 0;
 }
 
@@ -13,13 +19,16 @@ function normalizeTask(task) {
   };
 }
 
-async function findTask(taskId) {
+async function findTask(taskId, userId) {
   const [tasks] = await pool.execute(
-    `SELECT id, project_id, title, description, status, due_date,
-            (due_date < CURDATE() AND status <> 'done') AS is_overdue
+    `SELECT tasks.id, tasks.project_id, tasks.title, tasks.description,
+            tasks.status, tasks.due_date,
+            (tasks.due_date < CURDATE() AND tasks.status <> 'done') AS is_overdue
      FROM tasks
-     WHERE id = ?`,
-    [taskId],
+     INNER JOIN projects ON projects.id = tasks.project_id
+     INNER JOIN courses ON courses.id = projects.course_id
+     WHERE tasks.id = ? AND courses.user_id = ?`,
+    [taskId, userId],
   );
 
   return tasks[0] ? normalizeTask(tasks[0]) : null;
@@ -34,7 +43,7 @@ async function getTasksByProject(request, response) {
     });
   }
 
-  if (!(await projectExists(projectId))) {
+  if (!(await projectExists(projectId, request.user.id))) {
     return response.status(404).json({
       message: 'Project not found.',
     });
@@ -63,7 +72,7 @@ async function createTask(request, response) {
     });
   }
 
-  if (!(await projectExists(projectId))) {
+  if (!(await projectExists(projectId, request.user.id))) {
     return response.status(404).json({
       message: 'Project not found.',
     });
@@ -86,7 +95,7 @@ async function createTask(request, response) {
      VALUES (?, ?, ?, ?, ?)`,
     [projectId, trimmedTitle, normalizedDescription, status, dueDate],
   );
-  const task = await findTask(result.insertId);
+  const task = await findTask(result.insertId, request.user.id);
 
   return response.status(201).json({
     data: task,
@@ -102,7 +111,7 @@ async function updateTask(request, response) {
     });
   }
 
-  if (!(await findTask(taskId))) {
+  if (!(await findTask(taskId, request.user.id))) {
     return response.status(404).json({
       message: 'Task not found.',
     });
@@ -126,7 +135,7 @@ async function updateTask(request, response) {
   );
 
   return response.status(200).json({
-    data: await findTask(taskId),
+    data: await findTask(taskId, request.user.id),
   });
 }
 
@@ -150,7 +159,14 @@ async function updateTaskStatus(request, response) {
     });
   }
 
-  const [result] = await pool.execute('UPDATE tasks SET status = ? WHERE id = ?', [status, taskId]);
+  const [result] = await pool.execute(
+    `UPDATE tasks
+     INNER JOIN projects ON projects.id = tasks.project_id
+     INNER JOIN courses ON courses.id = projects.course_id
+     SET tasks.status = ?
+     WHERE tasks.id = ? AND courses.user_id = ?`,
+    [status, taskId, request.user.id],
+  );
 
   if (result.affectedRows === 0) {
     return response.status(404).json({
@@ -159,7 +175,7 @@ async function updateTaskStatus(request, response) {
   }
 
   return response.status(200).json({
-    data: await findTask(taskId),
+    data: await findTask(taskId, request.user.id),
   });
 }
 
@@ -172,7 +188,14 @@ async function deleteTask(request, response) {
     });
   }
 
-  const [result] = await pool.execute('DELETE FROM tasks WHERE id = ?', [taskId]);
+  const [result] = await pool.execute(
+    `DELETE tasks
+     FROM tasks
+     INNER JOIN projects ON projects.id = tasks.project_id
+     INNER JOIN courses ON courses.id = projects.course_id
+     WHERE tasks.id = ? AND courses.user_id = ?`,
+    [taskId, request.user.id],
+  );
 
   if (result.affectedRows === 0) {
     return response.status(404).json({

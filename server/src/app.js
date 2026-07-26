@@ -2,21 +2,30 @@ const express = require('express');
 const cors = require('cors');
 
 const { pool, testDatabaseConnection } = require('./config/db');
+const { createSessionMiddleware } = require('./config/session');
+const authRoutes = require('./routes/authRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const courseProjectRoutes = require('./routes/courseProjectRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const projectTaskRoutes = require('./routes/projectTaskRoutes');
 const taskRoutes = require('./routes/taskRoutes');
+const requireAuth = require('./middleware/requireAuth');
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 app.use(
   cors({
     origin: process.env.CLIENT_ORIGIN,
+    credentials: true,
   }),
 );
 app.use(express.json());
+app.use(createSessionMiddleware());
 
 app.get('/api/health', async (request, response) => {
   try {
@@ -37,6 +46,9 @@ app.get('/api/health', async (request, response) => {
   }
 });
 
+app.use('/api/auth', authRoutes);
+
+app.use(requireAuth);
 app.use('/api/courses', courseRoutes);
 app.use('/api/courses/:course_id/projects', courseProjectRoutes);
 app.use('/api/projects', projectRoutes);

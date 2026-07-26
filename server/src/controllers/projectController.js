@@ -1,17 +1,22 @@
 const { pool } = require('../config/db');
 const { parsePositiveInteger, validateProjectInput } = require('../utils/validation');
 
-async function courseExists(courseId) {
-  const [courses] = await pool.execute('SELECT id FROM courses WHERE id = ?', [courseId]);
+async function courseExists(courseId, userId) {
+  const [courses] = await pool.execute('SELECT id FROM courses WHERE id = ? AND user_id = ?', [
+    courseId,
+    userId,
+  ]);
   return courses.length > 0;
 }
 
-async function findProject(projectId) {
+async function findProject(projectId, userId) {
   const [projects] = await pool.execute(
-    `SELECT id, course_id, title, description, due_date
+    `SELECT projects.id, projects.course_id, projects.title,
+            projects.description, projects.due_date
      FROM projects
-     WHERE id = ?`,
-    [projectId],
+     INNER JOIN courses ON courses.id = projects.course_id
+     WHERE projects.id = ? AND courses.user_id = ?`,
+    [projectId, userId],
   );
 
   return projects[0] || null;
@@ -26,7 +31,7 @@ async function getProjectsByCourse(request, response) {
     });
   }
 
-  if (!(await courseExists(courseId))) {
+  if (!(await courseExists(courseId, request.user.id))) {
     return response.status(404).json({
       message: 'Course not found.',
     });
@@ -54,7 +59,7 @@ async function createProject(request, response) {
     });
   }
 
-  if (!(await courseExists(courseId))) {
+  if (!(await courseExists(courseId, request.user.id))) {
     return response.status(404).json({
       message: 'Course not found.',
     });
@@ -98,7 +103,7 @@ async function updateProject(request, response) {
     });
   }
 
-  if (!(await findProject(projectId))) {
+  if (!(await findProject(projectId, request.user.id))) {
     return response.status(404).json({
       message: 'Project not found.',
     });
@@ -122,7 +127,7 @@ async function updateProject(request, response) {
   );
 
   return response.status(200).json({
-    data: await findProject(projectId),
+    data: await findProject(projectId, request.user.id),
   });
 }
 
@@ -135,7 +140,13 @@ async function deleteProject(request, response) {
     });
   }
 
-  const [result] = await pool.execute('DELETE FROM projects WHERE id = ?', [projectId]);
+  const [result] = await pool.execute(
+    `DELETE projects
+     FROM projects
+     INNER JOIN courses ON courses.id = projects.course_id
+     WHERE projects.id = ? AND courses.user_id = ?`,
+    [projectId, request.user.id],
+  );
 
   if (result.affectedRows === 0) {
     return response.status(404).json({

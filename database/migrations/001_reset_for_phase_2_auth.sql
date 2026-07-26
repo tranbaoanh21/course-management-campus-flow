@@ -1,10 +1,20 @@
+-- WARNING: This development migration permanently deletes all current
+-- CampusFlow users, sessions, courses, projects, and tasks.
+-- Run only at the Phase 2 database checkpoint after the Auth backend is ready.
+
 CREATE DATABASE IF NOT EXISTS campus_flow
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
 USE campus_flow;
 
-CREATE TABLE IF NOT EXISTS users (
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS tasks;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS courses;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL,
@@ -19,7 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
     UNIQUE INDEX uq_users_email (email)
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS courses (
+CREATE TABLE courses (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNSIGNED NOT NULL,
     name VARCHAR(150) NOT NULL,
@@ -34,7 +44,7 @@ CREATE TABLE IF NOT EXISTS courses (
     INDEX idx_courses_user_id (user_id)
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS projects (
+CREATE TABLE projects (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     course_id INT UNSIGNED NOT NULL,
     title VARCHAR(200) NOT NULL,
@@ -51,7 +61,7 @@ CREATE TABLE IF NOT EXISTS projects (
     INDEX idx_projects_course_id (course_id)
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS tasks (
+CREATE TABLE tasks (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     project_id INT UNSIGNED NOT NULL,
     title VARCHAR(200) NOT NULL,
@@ -69,7 +79,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     INDEX idx_tasks_project_id (project_id)
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS sessions (
+CREATE TABLE sessions (
     session_id_hash CHAR(64) PRIMARY KEY,
     user_id INT UNSIGNED NOT NULL,
     session_data JSON NOT NULL,
@@ -85,3 +95,5 @@ CREATE TABLE IF NOT EXISTS sessions (
     INDEX idx_sessions_user_id (user_id),
     INDEX idx_sessions_expires_at (expires_at)
 ) ENGINE = InnoDB;
+
+SHOW TABLES;

@@ -2,7 +2,10 @@ const { pool } = require('../config/db');
 const { parsePositiveInteger, validateCourseName } = require('../utils/validation');
 
 async function getCourses(request, response) {
-  const [courses] = await pool.query('SELECT id, name FROM courses ORDER BY id DESC');
+  const [courses] = await pool.execute(
+    'SELECT id, name FROM courses WHERE user_id = ? ORDER BY id DESC',
+    [request.user.id],
+  );
 
   return response.status(200).json({
     data: courses,
@@ -26,7 +29,10 @@ async function createCourse(request, response) {
   }
 
   const trimmedName = name.trim();
-  const [result] = await pool.execute('INSERT INTO courses (name) VALUES (?)', [trimmedName]);
+  const [result] = await pool.execute('INSERT INTO courses (user_id, name) VALUES (?, ?)', [
+    request.user.id,
+    trimmedName,
+  ]);
 
   return response.status(201).json({
     data: {
@@ -58,9 +64,10 @@ async function updateCourse(request, response) {
   }
 
   const trimmedName = name.trim();
-  const [result] = await pool.execute('UPDATE courses SET name = ? WHERE id = ?', [
+  const [result] = await pool.execute('UPDATE courses SET name = ? WHERE id = ? AND user_id = ?', [
     trimmedName,
     courseId,
+    request.user.id,
   ]);
 
   if (result.affectedRows === 0) {
@@ -86,7 +93,10 @@ async function deleteCourse(request, response) {
     });
   }
 
-  const [result] = await pool.execute('DELETE FROM courses WHERE id = ?', [courseId]);
+  const [result] = await pool.execute('DELETE FROM courses WHERE id = ? AND user_id = ?', [
+    courseId,
+    request.user.id,
+  ]);
 
   if (result.affectedRows === 0) {
     return response.status(404).json({
