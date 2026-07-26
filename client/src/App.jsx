@@ -1,10 +1,23 @@
 import { useState } from 'react';
 
+import AuthScreen, { AuthLoadingScreen, SessionErrorScreen } from './features/auth/AuthScreen';
 import CourseManager from './features/courses/CourseManager';
 import ProjectManager from './features/projects/ProjectManager';
 import TaskManager from './features/tasks/TaskManager';
+import useAuth from './hooks/useAuth';
+import useToast from './hooks/useToast';
 
-function App() {
+function getInitials(name) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(-2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+}
+
+function Workspace({ user, isLoggingOut, onLogout }) {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
 
@@ -32,9 +45,23 @@ function App() {
               <p className="text-xs text-slate-500">Không gian học tập cá nhân</p>
             </div>
           </div>
-          <span className="hidden rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 sm:block">
-            Phase 1.5 · Product polish
-          </span>
+          <div className="flex items-center gap-3">
+            <div className="hidden text-right sm:block">
+              <p className="text-sm font-semibold text-slate-800">{user.name}</p>
+              <p className="max-w-56 truncate text-xs text-slate-400">{user.email}</p>
+            </div>
+            <div className="grid size-9 place-items-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+              {getInitials(user.name)}
+            </div>
+            <button
+              type="button"
+              className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-60"
+              disabled={isLoggingOut}
+              onClick={onLogout}
+            >
+              {isLoggingOut ? 'Đang thoát...' : 'Đăng xuất'}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -104,6 +131,38 @@ function App() {
       </div>
     </div>
   );
+}
+
+function App() {
+  const { user, isLoading, sessionError, logout, restoreSession } = useAuth();
+  const { showToast } = useToast();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setIsLoggingOut(true);
+
+    try {
+      await logout();
+    } catch (error) {
+      showToast(error.message, 'error');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  }
+
+  if (isLoading) {
+    return <AuthLoadingScreen />;
+  }
+
+  if (sessionError) {
+    return <SessionErrorScreen message={sessionError} onRetry={restoreSession} />;
+  }
+
+  if (!user) {
+    return <AuthScreen />;
+  }
+
+  return <Workspace user={user} isLoggingOut={isLoggingOut} onLogout={handleLogout} />;
 }
 
 export default App;
