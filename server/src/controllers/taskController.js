@@ -88,8 +88,8 @@ async function getTasks(request, response) {
      ${fromSql}
      ${whereSql}
      ORDER BY ${TASK_SORT_SQL[filters.sort]}
-     LIMIT ? OFFSET ?`,
-    [...parameters, filters.limit, offset],
+     LIMIT ${filters.limit} OFFSET ${offset}`,
+    parameters,
   );
 
   return response.status(200).json({
