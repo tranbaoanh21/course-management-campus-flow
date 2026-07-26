@@ -1,4 +1,4 @@
-# CampusFlow — REST API Contract (Phase 1)
+# CampusFlow — REST API Contract (Phase 1–2)
 
 ## 1. Quy ước chung
 
@@ -10,6 +10,9 @@
 - Ngày dùng định dạng `YYYY-MM-DD`, ví dụ `2026-08-15`.
 - `description` là field không bắt buộc và có thể là `null`.
 - API không trả thông tin lỗi nội bộ hoặc thông tin kết nối database cho client.
+- Phase 2 dùng server-side session qua cookie; client gửi `credentials: 'include'`.
+- `/api/health`, register và login là public. Các endpoint còn lại yêu cầu session hợp lệ.
+- API lấy `user_id` từ session, không nhận quyền sở hữu do client gửi.
 
 ### Response thành công
 
@@ -49,27 +52,33 @@ Field `errors` chỉ xuất hiện khi có lỗi validation theo từng field.
 | `200 OK`                    | Đọc, cập nhật hoặc xóa thành công                  |
 | `201 Created`               | Tạo dữ liệu thành công                             |
 | `400 Bad Request`           | ID, JSON body hoặc dữ liệu đầu vào không hợp lệ    |
+| `401 Unauthorized`          | Thiếu, hết hạn hoặc sai session/login credentials  |
 | `404 Not Found`             | Không tìm thấy course, project, task hoặc endpoint |
+| `409 Conflict`              | Email đăng ký đã tồn tại                           |
 | `500 Internal Server Error` | Lỗi ngoài dự kiến ở server hoặc database           |
 
 ## 3. Danh sách endpoint
 
-| Method   | Endpoint                           | Chức năng                |
-| -------- | ---------------------------------- | ------------------------ |
-| `GET`    | `/api/health`                      | Kiểm tra API và database |
-| `GET`    | `/api/courses`                     | Lấy danh sách course     |
-| `POST`   | `/api/courses`                     | Tạo course               |
-| `PATCH`  | `/api/courses/:course_id`          | Đổi tên course           |
-| `DELETE` | `/api/courses/:course_id`          | Xóa course               |
-| `GET`    | `/api/courses/:course_id/projects` | Lấy project theo course  |
-| `POST`   | `/api/courses/:course_id/projects` | Tạo project trong course |
-| `PATCH`  | `/api/projects/:project_id`        | Chỉnh sửa project        |
-| `DELETE` | `/api/projects/:project_id`        | Xóa project              |
-| `GET`    | `/api/projects/:project_id/tasks`  | Lấy task theo project    |
-| `POST`   | `/api/projects/:project_id/tasks`  | Tạo task trong project   |
-| `PATCH`  | `/api/tasks/:task_id`              | Chỉnh sửa task           |
-| `PATCH`  | `/api/tasks/:task_id/status`       | Cập nhật status của task |
-| `DELETE` | `/api/tasks/:task_id`              | Xóa task                 |
+| Method   | Endpoint                           | Chức năng                | Auth     |
+| -------- | ---------------------------------- | ------------------------ | -------- |
+| `GET`    | `/api/health`                      | Kiểm tra API và database | Public   |
+| `POST`   | `/api/auth/register`               | Đăng ký và tạo session   | Public   |
+| `POST`   | `/api/auth/login`                  | Đăng nhập và tạo session | Public   |
+| `GET`    | `/api/auth/me`                     | Lấy user hiện tại        | Required |
+| `POST`   | `/api/auth/logout`                 | Hủy session              | Required |
+| `GET`    | `/api/courses`                     | Lấy danh sách course     | Required |
+| `POST`   | `/api/courses`                     | Tạo course               | Required |
+| `PATCH`  | `/api/courses/:course_id`          | Đổi tên course           | Required |
+| `DELETE` | `/api/courses/:course_id`          | Xóa course               | Required |
+| `GET`    | `/api/courses/:course_id/projects` | Lấy project theo course  | Required |
+| `POST`   | `/api/courses/:course_id/projects` | Tạo project trong course | Required |
+| `PATCH`  | `/api/projects/:project_id`        | Chỉnh sửa project        | Required |
+| `DELETE` | `/api/projects/:project_id`        | Xóa project              | Required |
+| `GET`    | `/api/projects/:project_id/tasks`  | Lấy task theo project    | Required |
+| `POST`   | `/api/projects/:project_id/tasks`  | Tạo task trong project   | Required |
+| `PATCH`  | `/api/tasks/:task_id`              | Chỉnh sửa task           | Required |
+| `PATCH`  | `/api/tasks/:task_id/status`       | Cập nhật status của task | Required |
+| `DELETE` | `/api/tasks/:task_id`              | Xóa task                 | Required |
 
 ## 4. Health check
 
@@ -565,3 +574,143 @@ Nếu client gọi endpoint không tồn tại:
 ```
 
 Response là `404 Not Found`.
+
+## 9. Authentication API
+
+Auth responses gửi header `Cache-Control: no-store`. Register/login thành công tạo server-side session và gửi cookie bằng `Set-Cookie`.
+
+Cookie không được trả trong JSON và không thể đọc bằng JavaScript vì có `HttpOnly`.
+
+### `POST /api/auth/register`
+
+Tạo user mới và đăng nhập ngay bằng một session mới.
+
+#### Request body
+
+```json
+{
+  "name": "Bao Anh",
+  "email": "student@hcmut.edu.vn",
+  "password": "a long private passphrase"
+}
+```
+
+#### Validation
+
+- `name` là chuỗi bắt buộc, trim trước khi lưu và không dài quá 100 ký tự.
+- `email` là chuỗi bắt buộc, đúng định dạng cơ bản và không dài quá 255 ký tự.
+- Email được trim và lowercase trước khi kiểm tra/lưu.
+- `password` là chuỗi từ 12 đến 128 ký tự.
+- Password không được trim hoặc ghi log.
+
+#### Response `201 Created`
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Bao Anh",
+    "email": "student@hcmut.edu.vn"
+  }
+}
+```
+
+#### Response `400 Bad Request`
+
+```json
+{
+  "message": "Validation failed.",
+  "errors": {
+    "email": "Email must be valid.",
+    "password": "Password must be between 12 and 128 characters."
+  }
+}
+```
+
+#### Response `409 Conflict`
+
+```json
+{
+  "message": "Email is already registered.",
+  "errors": {
+    "email": "Email is already registered."
+  }
+}
+```
+
+### `POST /api/auth/login`
+
+Xác thực email/password và tạo session mới. Login sai email và sai password dùng cùng thông báo để hạn chế dò tài khoản.
+
+#### Request body
+
+```json
+{
+  "email": "student@hcmut.edu.vn",
+  "password": "a long private passphrase"
+}
+```
+
+#### Response `200 OK`
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Bao Anh",
+    "email": "student@hcmut.edu.vn"
+  }
+}
+```
+
+#### Response `401 Unauthorized`
+
+```json
+{
+  "message": "Invalid email or password."
+}
+```
+
+### `GET /api/auth/me`
+
+Lấy public profile của user thuộc session hiện tại. Endpoint này được frontend gọi khi ứng dụng khởi động.
+
+#### Response `200 OK`
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Bao Anh",
+    "email": "student@hcmut.edu.vn"
+  }
+}
+```
+
+#### Response `401 Unauthorized`
+
+```json
+{
+  "message": "Authentication required."
+}
+```
+
+### `POST /api/auth/logout`
+
+Hủy session ở server và clear cookie ở browser.
+
+#### Response `200 OK`
+
+```json
+{
+  "message": "Logged out successfully."
+}
+```
+
+### Protected resource rules
+
+- Request không có session hợp lệ trả `401 Authentication required.`
+- Query Course luôn dùng `request.user.id` làm owner.
+- Query Project/Task join qua Course để kiểm tra ownership.
+- Resource tồn tại nhưng thuộc user khác vẫn trả `404`, không trả `403`.
+- Client gửi `user_id` trong body không làm thay đổi owner và field đó bị bỏ qua.

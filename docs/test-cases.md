@@ -1,16 +1,17 @@
-# CampusFlow — Phase 1 Test Cases
+# CampusFlow — Phase 1 & 2 Test Cases
 
 ## 1. Mục đích
 
-Tài liệu này là checklist nghiệm thu thủ công cho Phase 1. Kiểm thử API bằng Postman, kiểm thử giao diện trên trình duyệt và dùng MySQL Workbench để xác nhận dữ liệu được lưu thật.
+Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản lý học tập, authentication và data ownership. Kiểm thử API bằng Postman, giao diện trên trình duyệt và dùng MySQL Workbench để xác nhận dữ liệu được lưu thật.
 
 ## 2. Điều kiện kiểm thử
 
-- MySQL đang chạy và đã thực thi `database/schema.sql`.
+- MySQL đang chạy và đã thực thi schema Phase 2.
 - Express API chạy tại `http://localhost:3000`.
 - React client chạy tại `http://localhost:5173`.
 - Postman đang chọn environment `CampusFlow Local`.
-- Khi cần dữ liệu độc lập, chạy `database/seed.sql` hoặc tạo dữ liệu mới qua giao diện.
+- `server/.env` có `SESSION_SECRET` và thông tin kết nối MySQL hợp lệ.
+- Khi cần sample data, đăng ký user trước rồi cấu hình email tương ứng trong `database/seed.sql`.
 
 ## 3. Course Management
 
@@ -52,21 +53,44 @@ Tài liệu này là checklist nghiệm thu thủ công cho Phase 1. Kiểm th�
 | T-13 | Lọc quá hạn             | Chọn bộ lọc Quá hạn                             | Chỉ task có `is_overdue: true` được hiển thị                         |
 | T-14 | Xóa bộ lọc              | Kết hợp search/filter rồi bấm Xóa bộ lọc        | Search và filter về mặc định; tất cả task hiển thị lại               |
 
-## 6. API và chất lượng giao diện
+## 6. Authentication
 
-| ID   | Trường hợp             | Thao tác                                   | Kết quả mong đợi                                           |
-| ---- | ---------------------- | ------------------------------------------ | ---------------------------------------------------------- |
-| Q-01 | API không chạy         | Dừng backend rồi tải lại UI                | UI hiển thị error state và có thể thử lại                  |
-| Q-02 | JSON không hợp lệ      | Gửi body JSON sai cú pháp bằng Postman     | API trả `400` với `Invalid JSON body.`                     |
-| Q-03 | ID không hợp lệ        | Gọi endpoint với ID `abc`, `0` hoặc số âm  | API trả `400` và thông báo ID không hợp lệ                 |
-| Q-04 | Endpoint không tồn tại | Gọi `/api/unknown`                         | API trả `404` với `Endpoint not found.`                    |
-| Q-05 | Chống gửi lặp          | Gửi form và quan sát lúc request đang chạy | Nút bị disable và hiển thị trạng thái đang xử lý           |
-| Q-06 | Dữ liệu bền vững       | Tạo dữ liệu rồi tải lại trang              | Dữ liệu vẫn xuất hiện vì được đọc lại từ MySQL             |
-| Q-07 | Postman regression     | Chạy collection theo thứ tự `00` đến `99`  | Tất cả test xanh; cleanup chỉ xóa record do collection tạo |
-| Q-08 | Hủy xác nhận xóa       | Bấm xóa rồi chọn Hủy                       | Dialog đóng và dữ liệu không thay đổi                      |
-| Q-09 | Xác nhận xóa           | Bấm xóa rồi xác nhận trong dialog          | Nút hiện đang xử lý; dialog đóng sau khi API thành công    |
-| Q-10 | Feedback thành công    | Tạo, sửa, đổi status hoặc xóa dữ liệu      | Toast thành công xuất hiện và tự đóng sau vài giây         |
+| ID   | Trường hợp              | Thao tác                                             | Kết quả mong đợi                                                      |
+| ---- | ----------------------- | ---------------------------------------------------- | --------------------------------------------------------------------- |
+| A-01 | Đăng ký hợp lệ          | Nhập name, email mới và password từ 12 ký tự         | API trả `201`; UI vào workspace; database chỉ lưu password hash       |
+| A-02 | Form đăng ký sai        | Bỏ trống name, dùng email sai hoặc password quá ngắn | UI/API hiển thị lỗi theo field; không tạo user                        |
+| A-03 | Email trùng             | Đăng ký lại email đã tồn tại                         | API trả `409`; UI hiển thị email đã được sử dụng                      |
+| A-04 | Đăng nhập hợp lệ        | Nhập đúng email và password                          | API trả `200`; browser nhận HttpOnly session cookie; UI vào workspace |
+| A-05 | Sai thông tin đăng nhập | Nhập sai email hoặc password                         | API trả `401` với cùng một thông báo chung                            |
+| A-06 | Khôi phục session       | Đăng nhập rồi refresh trang                          | `/auth/me` trả user; workspace vẫn hiển thị                           |
+| A-07 | Đăng xuất               | Bấm đăng xuất                                        | Session bị hủy ở server; UI trở về Login; `/auth/me` trả `401`        |
+| A-08 | Endpoint được bảo vệ    | Gọi Course/Project/Task khi chưa đăng nhập           | API trả `401 Unauthorized`                                            |
 
-## 7. Ghi nhận kết quả
+## 7. Data ownership
+
+| ID   | Trường hợp            | Thao tác                                                       | Kết quả mong đợi                                    |
+| ---- | --------------------- | -------------------------------------------------------------- | --------------------------------------------------- |
+| O-01 | Danh sách tách biệt   | Tạo course bằng user A, đăng nhập user B và gọi `GET /courses` | User B không thấy course của user A                 |
+| O-02 | Course của user khác  | User B đọc, sửa hoặc xóa course của user A                     | API trả `404`; dữ liệu không đổi                    |
+| O-03 | Project của user khác | User B đọc, sửa hoặc xóa project thuộc course của user A       | API trả `404`; dữ liệu không đổi                    |
+| O-04 | Task của user khác    | User B đọc, đổi status hoặc xóa task của user A                | API trả `404`; dữ liệu không đổi                    |
+| O-05 | Không tin `user_id`   | Gửi `user_id` khác trong request tạo resource                  | Backend bỏ qua field này và dùng user ID từ session |
+
+## 8. API và chất lượng giao diện
+
+| ID   | Trường hợp             | Thao tác                                   | Kết quả mong đợi                                                                             |
+| ---- | ---------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| Q-01 | API không chạy         | Dừng backend rồi tải lại UI                | UI hiển thị error state và có thể thử lại                                                    |
+| Q-02 | JSON không hợp lệ      | Gửi body JSON sai cú pháp bằng Postman     | API trả `400` với `Invalid JSON body.`                                                       |
+| Q-03 | ID không hợp lệ        | Gọi endpoint với ID `abc`, `0` hoặc số âm  | API trả `400` và thông báo ID không hợp lệ                                                   |
+| Q-04 | Endpoint không tồn tại | Gọi `/api/unknown`                         | API trả `404` với `Endpoint not found.`                                                      |
+| Q-05 | Chống gửi lặp          | Gửi form và quan sát lúc request đang chạy | Nút bị disable và hiển thị trạng thái đang xử lý                                             |
+| Q-06 | Dữ liệu bền vững       | Tạo dữ liệu rồi tải lại trang              | Dữ liệu vẫn xuất hiện vì được đọc lại từ MySQL                                               |
+| Q-07 | Postman regression     | Chạy collection theo thứ tự `00` đến `99`  | Tất cả test xanh, gồm auth và ownership; cleanup chỉ xóa dữ liệu nghiệp vụ do collection tạo |
+| Q-08 | Hủy xác nhận xóa       | Bấm xóa rồi chọn Hủy                       | Dialog đóng và dữ liệu không thay đổi                                                        |
+| Q-09 | Xác nhận xóa           | Bấm xóa rồi xác nhận trong dialog          | Nút hiện đang xử lý; dialog đóng sau khi API thành công                                      |
+| Q-10 | Feedback thành công    | Tạo, sửa, đổi status hoặc xóa dữ liệu      | Toast thành công xuất hiện và tự đóng sau vài giây                                           |
+
+## 9. Ghi nhận kết quả
 
 Khi test một phiên bản trước khi merge hoặc release, ghi lại commit, ngày test và các test case thất bại trong issue hoặc pull request. Không chỉnh cột “Kết quả mong đợi” để che một lỗi đang tồn tại.

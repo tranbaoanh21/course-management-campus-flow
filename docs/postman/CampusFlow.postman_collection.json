@@ -1,12 +1,12 @@
 {
   "info": {
     "_postman_id": "52b2d04d-1f76-4a50-8f66-0b00c19b7a21",
-    "name": "CampusFlow API - Phase 1",
-    "description": "Version-controlled API tests for the CampusFlow Phase 1 endpoints. Run folders in order. The Cleanup folder removes records created by this collection.",
+    "name": "CampusFlow API - Phase 2",
+    "description": "Version-controlled API tests for CampusFlow authentication and owned CRUD resources. Run folders in order. Postman keeps the HttpOnly session cookie in its cookie jar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": {
-      "major": 1,
-      "minor": 2,
+      "major": 2,
+      "minor": 0,
       "patch": 0
     }
   },
@@ -59,7 +59,199 @@
       ]
     },
     {
-      "name": "01 - Courses",
+      "name": "01 - Authentication",
+      "description": "Register, restore, destroy, and recreate a server-side session. Set auth_password in the active environment before running this folder.",
+      "item": [
+        {
+          "name": "Register test user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{auth_name}}\",\n  \"email\": \"{{auth_email}}\",\n  \"password\": \"{{auth_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/auth/register",
+            "description": "Generates a unique local test email, creates a user, and lets Postman store the HttpOnly session cookie automatically."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.environment.set('auth_email', `postman.${Date.now()}@example.com`);"]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Registered public profile is returned', function () {",
+                  "  pm.expect(body.data.id).to.be.a('number');",
+                  "  pm.expect(body.data.name).to.eql(pm.environment.get('auth_name'));",
+                  "  pm.expect(body.data.email).to.eql(pm.environment.get('auth_email'));",
+                  "  pm.expect(body.data).not.to.have.property('password_hash');",
+                  "});",
+                  "",
+                  "pm.test('Session cookie is created', function () {",
+                  "  pm.expect(pm.response.headers.has('Set-Cookie')).to.eql(true);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201 && body.data?.id) {",
+                  "  pm.environment.set('auth_user_id', body.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get current user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/auth/me",
+            "description": "Uses the cookie created during registration to restore the authenticated user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Session belongs to the registered user', function () {",
+                  "  const user = pm.response.json().data;",
+                  "  pm.expect(String(user.id)).to.eql(String(pm.environment.get('auth_user_id')));",
+                  "  pm.expect(user.email).to.eql(pm.environment.get('auth_email'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/auth/logout",
+            "description": "Destroys the current server-side session and clears the cookie."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Logout is confirmed', function () {",
+                  "  pm.expect(pm.response.json().message).to.eql('Logged out successfully.');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject missing session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/auth/me",
+            "description": "Confirms that the destroyed session can no longer access a protected endpoint."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Authentication is required', function () {",
+                  "  pm.expect(pm.response.json().message).to.eql('Authentication required.');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{auth_email}}\",\n  \"password\": \"{{auth_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/auth/login",
+            "description": "Creates a new server-side session for the registered test user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Logged-in public profile is returned', function () {",
+                  "  const user = pm.response.json().data;",
+                  "  pm.expect(String(user.id)).to.eql(String(pm.environment.get('auth_user_id')));",
+                  "  pm.expect(user.email).to.eql(pm.environment.get('auth_email'));",
+                  "});",
+                  "",
+                  "pm.test('New session cookie is created', function () {",
+                  "  pm.expect(pm.response.headers.has('Set-Cookie')).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Courses",
       "description": "List, create, and validate courses. Create course stores its ID in the active environment as course_id.",
       "item": [
         {
@@ -221,7 +413,7 @@
       ]
     },
     {
-      "name": "02 - Projects",
+      "name": "03 - Projects",
       "description": "Project requests use course_id captured by Create course. Create project stores its ID as project_id.",
       "item": [
         {
@@ -386,7 +578,7 @@
       ]
     },
     {
-      "name": "03 - Tasks",
+      "name": "04 - Tasks",
       "description": "Task requests use project_id captured by Create project. Create task stores its ID as task_id and verifies the overdue business rule.",
       "item": [
         {
@@ -632,6 +824,280 @@
                   "  pm.expect(errors.title).to.be.a('string');",
                   "  pm.expect(errors.status).to.be.a('string');",
                   "  pm.expect(errors.due_date).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Ownership",
+      "description": "Switches from the owner account to a second user, verifies private resources return 404, then logs the owner back in for cleanup.",
+      "item": [
+        {
+          "name": "Logout owner",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/auth/logout"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register second user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Second User\",\n  \"email\": \"{{second_auth_email}}\",\n  \"password\": \"{{auth_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/auth/register",
+            "description": "Creates and authenticates a second user with no access to the first user's resources."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('second_auth_email', `postman.second.${Date.now()}@example.com`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('A different user is created', function () {",
+                  "  pm.expect(String(body.data.id)).not.to.eql(String(pm.environment.get('auth_user_id')));",
+                  "  pm.expect(body.data.email).to.eql(pm.environment.get('second_auth_email'));",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201 && body.data?.id) {",
+                  "  pm.environment.set('second_auth_user_id', body.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Second user has separate course list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/courses"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Owner course is not visible', function () {",
+                  "  const courses = pm.response.json().data;",
+                  "  const ownerCourseId = String(pm.environment.get('course_id'));",
+                  "  pm.expect(courses.some((course) => String(course.id) === ownerCourseId)).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject owner course update",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unauthorized update\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/courses/{{course_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Private course is hidden', function () {",
+                  "  pm.expect(pm.response.json().message).to.eql('Course not found.');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject owner project access",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/courses/{{course_id}}/projects"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Private project parent is hidden', function () {",
+                  "  pm.expect(pm.response.json().message).to.eql('Course not found.');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject owner task update",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"todo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/tasks/{{task_id}}/status"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Private task is hidden', function () {",
+                  "  pm.expect(pm.response.json().message).to.eql('Task not found.');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout second user",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/auth/logout"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login owner for cleanup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{auth_email}}\",\n  \"password\": \"{{auth_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Original owner is authenticated again', function () {",
+                  "  const user = pm.response.json().data;",
+                  "  pm.expect(String(user.id)).to.eql(String(pm.environment.get('auth_user_id')));",
                   "});"
                 ]
               }

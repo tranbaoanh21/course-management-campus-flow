@@ -1,6 +1,6 @@
 # CampusFlow
 
-CampusFlow is a full-stack web application for managing student courses, projects, tasks, deadlines, and progress. Phase 1 and the Phase 1.5 product-polish milestone are complete, with data persisted in MySQL.
+CampusFlow is a full-stack web application for managing student courses, projects, tasks, deadlines, and progress. Phase 2 adds account-based authentication and isolates each user's data, with all application data and sessions persisted in MySQL.
 
 ## Features
 
@@ -13,6 +13,9 @@ CampusFlow is a full-stack web application for managing student courses, project
 - Show loading, error, empty, confirmation, and success-feedback states in the UI.
 - Cascade deletes from course to project to task through MySQL foreign keys.
 - Run version-controlled Postman regression tests and backend validation unit tests.
+- Register, log in, restore a session after refresh, and log out.
+- Store passwords as salted `scrypt` hashes and sessions in MySQL.
+- Restrict every course, project, and task to its authenticated owner.
 
 ## Stack
 
@@ -55,7 +58,9 @@ nvm use
 
 ### 2. Create the database
 
-Open and run `database/schema.sql` in MySQL Workbench. Optionally run `database/seed.sql` afterward to add sample data. The seed script does not delete existing records and avoids duplicating its own samples.
+For a new database, open and run `database/schema.sql` in MySQL Workbench. If upgrading a Phase 1 development database, run `database/migrations/001_phase_2_auth_reset.sql` instead. The migration intentionally resets existing Course/Project/Task data before adding authentication and ownership.
+
+Optionally run `database/seed.sql` after registering a user and configuring the seed email inside the script. The seed script does not delete existing records and avoids duplicating its own samples.
 
 ### 3. Configure and run the backend
 
@@ -93,6 +98,7 @@ DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=your_local_password
 DB_NAME=campus_flow
+SESSION_SECRET=replace_with_a_long_random_secret
 ```
 
 Frontend variable in `client/.env`:
@@ -112,7 +118,7 @@ Import these files into Postman:
 - `docs/postman/CampusFlow.postman_collection.json`
 - `docs/postman/CampusFlow.local.postman_environment.json`
 
-Select the `CampusFlow Local` environment and run the collection folders in numeric order. Folder `99 - Cleanup` removes the records created by the collection.
+Select the `CampusFlow Local` environment, set a local `auth_password`, and run the collection folders in numeric order. Folder `05 - Ownership` verifies isolation with a second account. Folder `99 - Cleanup` removes the Course/Project/Task records created by the collection; test accounts remain.
 
 ## Quality checks
 
@@ -131,6 +137,7 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 
 - `docs/requirements.md` — Phase 1 product requirements
 - `docs/phase-1.5.md` — product-polish scope and completion status
+- `docs/phase-2-auth.md` — authentication and data-ownership design
 - `docs/erd.mmd` — Mermaid entity relationship diagram
 - `docs/api.md` — REST API contract
 - `docs/test-cases.md` — manual acceptance checklist
@@ -138,4 +145,4 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 
 ## Project status
 
-Phase 1 MVP and Phase 1.5 Product Polish are complete. Authentication, collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
+Phase 1 MVP, Phase 1.5 Product Polish, and Phase 2 Authentication & Data Ownership are complete. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
