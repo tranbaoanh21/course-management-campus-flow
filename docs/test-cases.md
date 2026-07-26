@@ -76,7 +76,18 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | O-04 | Task của user khác    | User B đọc, đổi status hoặc xóa task của user A                | API trả `404`; dữ liệu không đổi                    |
 | O-05 | Không tin `user_id`   | Gửi `user_id` khác trong request tạo resource                  | Backend bỏ qua field này và dùng user ID từ session |
 
-## 8. API và chất lượng giao diện
+## 8. Dashboard
+
+| ID   | Trường hợp           | Thao tác                                        | Kết quả mong đợi                                                |
+| ---- | -------------------- | ----------------------------------------------- | --------------------------------------------------------------- |
+| D-01 | User chưa có dữ liệu | Đăng nhập bằng user mới                         | Các count bằng `0`, tiến độ `0%` và hiển thị empty state        |
+| D-02 | Thống kê workspace   | Tạo Course, Project và Task rồi mở dashboard    | Count và số lượng theo status khớp dữ liệu trong MySQL          |
+| D-03 | Task ưu tiên         | Có task quá hạn và task sắp đến hạn chưa `done` | Task quá hạn đứng trước, sau đó sắp xếp due date tăng dần       |
+| D-04 | Bỏ task hoàn thành   | Đổi một priority task thành `done` rồi tải lại  | Task không còn trong danh sách ưu tiên; tiến độ hoàn thành tăng |
+| D-05 | Ownership dashboard  | So sánh dashboard của hai user                  | Mỗi user chỉ nhận thống kê và task của chính mình               |
+| D-06 | Quay lại dashboard   | Đang xem Course rồi click logo CampusFlow       | Course được bỏ chọn và dashboard được tải lại                   |
+
+## 9. API và chất lượng giao diện
 
 | ID   | Trường hợp             | Thao tác                                   | Kết quả mong đợi                                                                             |
 | ---- | ---------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
@@ -91,6 +102,6 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | Q-09 | Xác nhận xóa           | Bấm xóa rồi xác nhận trong dialog          | Nút hiện đang xử lý; dialog đóng sau khi API thành công                                      |
 | Q-10 | Feedback thành công    | Tạo, sửa, đổi status hoặc xóa dữ liệu      | Toast thành công xuất hiện và tự đóng sau vài giây                                           |
 
-## 9. Ghi nhận kết quả
+## 10. Ghi nhận kết quả
 
 Khi test một phiên bản trước khi merge hoặc release, ghi lại commit, ngày test và các test case thất bại trong issue hoặc pull request. Không chỉnh cột “Kết quả mong đợi” để che một lỗi đang tồn tại.
