@@ -147,4 +147,4 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 
 ## Project status
 
-Phase 1 MVP, Phase 1.5 Product Polish, and Phase 2 Authentication & Data Ownership are complete. Phase 3 Dashboard & Deadline Overview is implemented and waiting for local regression. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
+Phase 1 MVP, Phase 1.5 Product Polish, Phase 2 Authentication & Data Ownership, and Phase 3 Dashboard & Deadline Overview are complete. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
