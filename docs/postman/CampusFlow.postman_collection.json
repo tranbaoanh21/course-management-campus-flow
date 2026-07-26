@@ -833,7 +833,45 @@
       ]
     },
     {
-      "name": "05 - Ownership",
+      "name": "05 - Dashboard",
+      "description": "Checks the authenticated user's workspace totals, progress, and priority task response.",
+      "item": [
+        {
+          "name": "Get dashboard overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/dashboard",
+            "description": "Returns counts, task status totals, completion percentage, and priority tasks for the owner."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Dashboard summary matches the created records', function () {",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data.counts.courses).to.be.at.least(1);",
+                  "  pm.expect(data.counts.projects).to.be.at.least(1);",
+                  "  pm.expect(data.counts.tasks).to.be.at.least(1);",
+                  "  pm.expect(data.task_status.done).to.be.at.least(1);",
+                  "  pm.expect(data.completion_percentage).to.be.within(0, 100);",
+                  "  pm.expect(data.priority_tasks).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 - Ownership",
       "description": "Switches from the owner account to a second user, verifies private resources return 404, then logs the owner back in for cleanup.",
       "item": [
         {

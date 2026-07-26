@@ -1,4 +1,4 @@
-# CampusFlow — REST API Contract (Phase 1–2)
+# CampusFlow — REST API Contract (Phase 1–3)
 
 ## 1. Quy ước chung
 
@@ -66,6 +66,7 @@ Field `errors` chỉ xuất hiện khi có lỗi validation theo từng field.
 | `POST`   | `/api/auth/login`                  | Đăng nhập và tạo session | Public   |
 | `GET`    | `/api/auth/me`                     | Lấy user hiện tại        | Required |
 | `POST`   | `/api/auth/logout`                 | Hủy session              | Required |
+| `GET`    | `/api/dashboard`                   | Tổng quan và deadline    | Required |
 | `GET`    | `/api/courses`                     | Lấy danh sách course     | Required |
 | `POST`   | `/api/courses`                     | Tạo course               | Required |
 | `PATCH`  | `/api/courses/:course_id`          | Đổi tên course           | Required |
@@ -105,7 +106,49 @@ Kiểm tra Express API có hoạt động và có kết nối được MySQL hay
 }
 ```
 
-## 5. Course API
+## 5. Dashboard API
+
+### `GET /api/dashboard`
+
+Trả thống kê toàn workspace và tối đa 6 task chưa hoàn thành cần ưu tiên. Dữ liệu chỉ thuộc user hiện tại.
+
+#### Response `200 OK`
+
+```json
+{
+  "data": {
+    "counts": {
+      "courses": 3,
+      "projects": 5,
+      "tasks": 12
+    },
+    "task_status": {
+      "todo": 4,
+      "in_progress": 3,
+      "done": 5,
+      "overdue": 2
+    },
+    "completion_percentage": 42,
+    "priority_tasks": [
+      {
+        "id": 7,
+        "project_id": 2,
+        "title": "Hoàn thành ERD",
+        "status": "in-progress",
+        "due_date": "2026-08-15",
+        "project_title": "Database Assignment",
+        "course_id": 1,
+        "course_name": "Database Systems",
+        "is_overdue": false
+      }
+    ]
+  }
+}
+```
+
+`completion_percentage` được làm tròn từ `done / tổng task`. Nếu chưa có task, giá trị là `0`.
+
+## 6. Course API
 
 ### `GET /api/courses`
 
@@ -226,7 +269,7 @@ Validation của `name` giống endpoint tạo course.
 }
 ```
 
-## 6. Project API
+## 7. Project API
 
 ### `GET /api/courses/:course_id/projects`
 
@@ -359,7 +402,7 @@ Validation của các field giống endpoint tạo project.
 }
 ```
 
-## 7. Task API
+## 8. Task API
 
 ### `GET /api/projects/:project_id/tasks`
 
@@ -553,7 +596,7 @@ Xóa một task.
 }
 ```
 
-## 8. Quy tắc xử lý endpoint và ID không hợp lệ
+## 9. Quy tắc xử lý endpoint và ID không hợp lệ
 
 Nếu ID trên URL không phải số nguyên dương:
 
@@ -575,7 +618,7 @@ Nếu client gọi endpoint không tồn tại:
 
 Response là `404 Not Found`.
 
-## 9. Authentication API
+## 10. Authentication API
 
 Auth responses gửi header `Cache-Control: no-store`. Register/login thành công tạo server-side session và gửi cookie bằng `Set-Cookie`.
 
