@@ -4,6 +4,8 @@ const {
   normalizeEmail,
   validateRegistrationInput,
   validateLoginInput,
+  validateProfileInput,
+  validatePasswordChangeInput,
 } = require('../utils/authValidation');
 const { hashPassword, verifyPassword } = require('../utils/password');
 
@@ -142,6 +144,104 @@ function getCurrentUser(request, response) {
   });
 }
 
+async function updateProfile(request, response) {
+  const { name } = request.body;
+  const errors = validateProfileInput({ name });
+
+  if (Object.keys(errors).length > 0) {
+    return response.status(400).json({
+      message: 'Validation failed.',
+      errors,
+    });
+  }
+
+  const trimmedName = name.trim();
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+    await connection.execute('UPDATE users SET name = ? WHERE id = ?', [
+      trimmedName,
+      request.user.id,
+    ]);
+    await connection.execute(
+      `UPDATE sessions
+       SET session_data = JSON_SET(session_data, '$.user.name', ?)
+       WHERE user_id = ?`,
+      [trimmedName, request.user.id],
+    );
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+
+  const user = {
+    ...request.user,
+    name: trimmedName,
+  };
+  request.session.user = user;
+  await saveSession(request);
+
+  return response.status(200).json({
+    data: user,
+  });
+}
+
+async function changePassword(request, response) {
+  const { current_password: currentPassword, new_password: newPassword } = request.body;
+  const errors = validatePasswordChangeInput({ currentPassword, newPassword });
+
+  if (Object.keys(errors).length > 0) {
+    return response.status(400).json({
+      message: 'Validation failed.',
+      errors,
+    });
+  }
+
+  const [users] = await pool.execute('SELECT password_hash FROM users WHERE id = ?', [
+    request.user.id,
+  ]);
+  const currentPasswordIsValid = users[0]
+    ? await verifyPassword(currentPassword, users[0].password_hash)
+    : false;
+
+  if (!currentPasswordIsValid) {
+    return response.status(400).json({
+      message: 'Validation failed.',
+      errors: {
+        current_password: 'Current password is incorrect.',
+      },
+    });
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+    await connection.execute('UPDATE users SET password_hash = ? WHERE id = ?', [
+      passwordHash,
+      request.user.id,
+    ]);
+    await connection.execute('DELETE FROM sessions WHERE user_id = ?', [request.user.id]);
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+
+  await startAuthenticatedSession(request, request.user);
+
+  return response.status(200).json({
+    message: 'Password changed successfully.',
+  });
+}
+
 function logout(request, response, next) {
   request.session.destroy((error) => {
     if (error) {
@@ -166,5 +266,7 @@ module.exports = {
   register,
   login,
   getCurrentUser,
+  updateProfile,
+  changePassword,
   logout,
 };

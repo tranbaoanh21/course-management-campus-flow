@@ -30,17 +30,28 @@ function validatePassword(password) {
   return null;
 }
 
+function validateName(name) {
+  if (typeof name !== 'string' || name.trim().length === 0) {
+    return 'Name is required.';
+  }
+
+  if (name.trim().length > 100) {
+    return 'Name must not exceed 100 characters.';
+  }
+
+  return null;
+}
+
 function validateRegistrationInput({ name, email, password }) {
   const errors = {};
-
-  if (typeof name !== 'string' || name.trim().length === 0) {
-    errors.name = 'Name is required.';
-  } else if (name.trim().length > 100) {
-    errors.name = 'Name must not exceed 100 characters.';
-  }
+  const nameError = validateName(name);
 
   const emailError = validateEmail(email);
   const passwordError = validatePassword(password);
+
+  if (nameError) {
+    errors.name = nameError;
+  }
 
   if (emailError) {
     errors.email = emailError;
@@ -48,6 +59,30 @@ function validateRegistrationInput({ name, email, password }) {
 
   if (passwordError) {
     errors.password = passwordError;
+  }
+
+  return errors;
+}
+
+function validateProfileInput({ name }) {
+  const nameError = validateName(name);
+
+  return nameError ? { name: nameError } : {};
+}
+
+function validatePasswordChangeInput({ currentPassword, newPassword }) {
+  const errors = {};
+
+  if (typeof currentPassword !== 'string' || currentPassword.length === 0) {
+    errors.current_password = 'Current password is required.';
+  }
+
+  const newPasswordError = validatePassword(newPassword);
+
+  if (newPasswordError) {
+    errors.new_password = newPasswordError;
+  } else if (currentPassword === newPassword) {
+    errors.new_password = 'New password must be different from the current password.';
   }
 
   return errors;
@@ -71,7 +106,10 @@ function validateLoginInput({ email, password }) {
 module.exports = {
   normalizeEmail,
   validateEmail,
+  validateName,
   validatePassword,
   validateRegistrationInput,
   validateLoginInput,
+  validateProfileInput,
+  validatePasswordChangeInput,
 };

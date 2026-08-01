@@ -6,6 +6,8 @@ const {
   normalizeEmail,
   validateRegistrationInput,
   validateLoginInput,
+  validateProfileInput,
+  validatePasswordChangeInput,
 } = require('../src/utils/authValidation');
 const { hashPassword, verifyPassword } = require('../src/utils/password');
 
@@ -43,6 +45,30 @@ test('validateLoginInput requires both credentials', () => {
   assert.deepEqual(validateLoginInput({ email: '', password: '' }), {
     email: 'Email is required.',
     password: 'Password is required.',
+  });
+});
+
+test('validateProfileInput enforces the display name rules', () => {
+  assert.deepEqual(validateProfileInput({ name: '  Bao Anh  ' }), {});
+  assert.deepEqual(validateProfileInput({ name: ' ' }), {
+    name: 'Name is required.',
+  });
+});
+
+test('validatePasswordChangeInput requires a different valid new password', () => {
+  assert.deepEqual(
+    validatePasswordChangeInput({
+      currentPassword: 'current passphrase',
+      newPassword: 'current passphrase',
+    }),
+    {
+      new_password: 'New password must be different from the current password.',
+    },
+  );
+
+  assert.deepEqual(validatePasswordChangeInput({ currentPassword: '', newPassword: 'short' }), {
+    current_password: 'Current password is required.',
+    new_password: 'Password must be between 12 and 128 characters.',
   });
 });
 
