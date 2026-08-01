@@ -23,6 +23,7 @@ CampusFlow is a full-stack web application for managing student courses, project
 - Track each project's completion percentage, overdue work, and progress status directly from its tasks.
 - Open a Course overview with its Project/Task totals, completion, overdue count, and next deadline.
 - Search owned Courses, Projects, and Tasks from one debounced global search and open their workspace context.
+- Download a portable JSON backup of the authenticated account's complete Course, Project, and Task tree.
 
 ## Stack
 
@@ -125,7 +126,7 @@ Import these files into Postman:
 - `docs/postman/CampusFlow.postman_collection.json`
 - `docs/postman/CampusFlow.local.postman_environment.json`
 
-Select the `CampusFlow Local` environment, set a local `auth_password`, and run the collection folders in numeric order. Folder `11 - Ownership` verifies isolation with a second account. Folder `99 - Cleanup` removes the Course/Project/Task records created by the collection; test accounts remain.
+Select the `CampusFlow Local` environment, set a local `auth_password`, and run the collection folders in numeric order. Folder `12 - Ownership` verifies isolation with a second account. Folder `99 - Cleanup` removes the Course/Project/Task records created by the collection; test accounts remain.
 
 ## Quality checks
 
@@ -152,6 +153,7 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 - `docs/phase-7-project-progress.md` — project progress tracking scope
 - `docs/phase-8-course-overview.md` — per-course overview scope
 - `docs/phase-9-global-search.md` — global workspace search scope
+- `docs/phase-10-data-export.md` — personal JSON backup scope
 - `docs/erd.mmd` — Mermaid entity relationship diagram
 - `docs/api.md` — REST API contract
 - `docs/test-cases.md` — manual acceptance checklist
@@ -159,4 +161,4 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 
 ## Project status
 
-Phase 1 MVP through Phase 6 Calendar & Monthly Agenda are complete. Phase 7 Project Progress Tracking, Phase 8 Course Overview, and Phase 9 Global Search are implemented and waiting for local regression testing. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
+Phase 1 MVP through Phase 6 Calendar & Monthly Agenda are complete. Phase 7 Project Progress Tracking through Phase 10 Data Export are implemented and waiting for local regression testing. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred until their scope and infrastructure are agreed.

@@ -1,4 +1,4 @@
-# CampusFlow — Phase 1–9 Test Cases
+# CampusFlow — Phase 1–10 Test Cases
 
 ## 1. Mục đích
 
@@ -168,7 +168,20 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | GS-09 | Giới hạn kết quả    | Có nhiều record cùng khớp một query            | Response tối đa 5 Course, 5 Project và 8 Task                      |
 | GS-10 | Search responsive   | Mở và sử dụng modal trên mobile                | Input và danh sách không tràn; modal có thể cuộn khi nhiều kết quả |
 
-## 15. API và chất lượng giao diện
+## 15. Personal Data Export
+
+| ID    | Trường hợp         | Thao tác                                          | Kết quả mong đợi                                                            |
+| ----- | ------------------ | ------------------------------------------------- | --------------------------------------------------------------------------- |
+| EX-01 | Export có dữ liệu  | Gọi `/api/export` sau khi tạo Course/Project/Task | Summary đúng và Task nằm trong Project thuộc Course tương ứng               |
+| EX-02 | Export rỗng        | Gọi export bằng user mới                          | Có account; summary bằng `0`; `courses` là mảng rỗng                        |
+| EX-03 | Tải backup         | Bấm **Tải file backup** trong Settings            | Browser tải `campusflow-backup-YYYY-MM-DD.json`                             |
+| EX-04 | JSON hợp lệ        | Mở file vừa tải bằng editor                       | Parse được JSON; có format, version, exported_at, account, summary, courses |
+| EX-05 | Không lộ password  | Tìm `password`, `password_hash`, `session_data`   | Không có field hoặc giá trị nhạy cảm trong response/file                    |
+| EX-06 | Ownership export   | So sánh export của user A và user B               | Mỗi file chỉ có profile và dữ liệu của chính user đó                        |
+| EX-07 | Feedback tải       | Quan sát trong lúc gọi API và sau khi tải         | Nút disabled/đổi label; thành công có toast; lỗi có error state             |
+| EX-08 | API chưa đăng nhập | Gọi `/api/export` không có session                | API trả `401 Unauthorized`                                                  |
+
+## 16. API và chất lượng giao diện
 
 | ID   | Trường hợp             | Thao tác                                   | Kết quả mong đợi                                                                             |
 | ---- | ---------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
@@ -183,6 +196,6 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | Q-09 | Xác nhận xóa           | Bấm xóa rồi xác nhận trong dialog          | Nút hiện đang xử lý; dialog đóng sau khi API thành công                                      |
 | Q-10 | Feedback thành công    | Tạo, sửa, đổi status hoặc xóa dữ liệu      | Toast thành công xuất hiện và tự đóng sau vài giây                                           |
 
-## 16. Ghi nhận kết quả
+## 17. Ghi nhận kết quả
 
 Khi test một phiên bản trước khi merge hoặc release, ghi lại commit, ngày test và các test case thất bại trong issue hoặc pull request. Không chỉnh cột “Kết quả mong đợi” để che một lỗi đang tồn tại.

@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import useAuth from '../../hooks/useAuth';
 import useToast from '../../hooks/useToast';
+import { getDataExport } from '../../services/exportApi';
 
 const EMPTY_PASSWORD_FORM = {
   current_password: '',
@@ -20,6 +21,8 @@ function AccountSettings() {
   const [passwordErrors, setPasswordErrors] = useState({});
   const [passwordError, setPasswordError] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   async function handleProfileSubmit(event) {
     event.preventDefault();
@@ -96,6 +99,32 @@ function AccountSettings() {
       setPasswordError(error.message);
     } finally {
       setIsChangingPassword(false);
+    }
+  }
+
+  async function handleExport() {
+    setIsExporting(true);
+    setExportError('');
+
+    try {
+      const data = await getDataExport();
+      const date = new Date().toISOString().slice(0, 10);
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: 'application/json',
+      });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `campusflow-backup-${date}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+      showToast('File backup CampusFlow đã được tải xuống.');
+    } catch (error) {
+      setExportError(error.message);
+    } finally {
+      setIsExporting(false);
     }
   }
 
@@ -215,6 +244,31 @@ function AccountSettings() {
           </form>
         </section>
       </div>
+
+      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h2 className="font-semibold text-slate-950">Backup dữ liệu</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+              Tải một file JSON chứa profile cùng toàn bộ Course, Project và Task của tài khoản này.
+              File không chứa password hoặc session.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="shrink-0 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700 disabled:opacity-60"
+            disabled={isExporting}
+            onClick={handleExport}
+          >
+            {isExporting ? 'Đang tạo backup...' : 'Tải file backup'}
+          </button>
+        </div>
+        {exportError && (
+          <div className="mt-4">
+            <ErrorMessage message={exportError} />
+          </div>
+        )}
+      </section>
 
       <section className="mt-6 rounded-2xl border border-slate-200 bg-slate-100/70 p-5 text-sm text-slate-500">
         <p className="font-semibold text-slate-700">Security boundary</p>
