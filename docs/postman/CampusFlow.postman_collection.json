@@ -938,7 +938,70 @@
       ]
     },
     {
-      "name": "07 - Ownership",
+      "name": "07 - Calendar",
+      "description": "Checks the ownership-safe monthly deadline endpoint and validates the month query.",
+      "item": [
+        {
+          "name": "Get January 2020 calendar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/calendar?month=2020-01",
+            "description": "Returns the Postman task created earlier with its Course and Project context."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Calendar includes the owned January task', function () {",
+                  "  const data = pm.response.json().data;",
+                  "  const taskIds = data.tasks.map((task) => String(task.id));",
+                  "  pm.expect(data.month).to.eql('2020-01');",
+                  "  pm.expect(taskIds).to.include(String(pm.environment.get('task_id')));",
+                  "  pm.expect(data.tasks[0]).to.have.property('course_name');",
+                  "  pm.expect(data.tasks[0]).to.have.property('project_title');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject invalid calendar month",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/calendar?month=2026-13",
+            "description": "Verifies strict YYYY-MM calendar validation."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Month validation error is returned', function () {",
+                  "  pm.expect(pm.response.json().errors.month).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08 - Ownership",
       "description": "Switches from the owner account to a second user, verifies private resources return 404, then logs the owner back in for cleanup.",
       "item": [
         {
@@ -1212,7 +1275,7 @@
       ]
     },
     {
-      "name": "08 - Account Settings",
+      "name": "09 - Account Settings",
       "description": "Updates the owner profile, validates password checks, rotates the session, and verifies login with the new password.",
       "item": [
         {

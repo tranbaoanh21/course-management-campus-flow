@@ -4,6 +4,7 @@ const cors = require('cors');
 const { pool, testDatabaseConnection } = require('./config/db');
 const { createSessionMiddleware } = require('./config/session');
 const authRoutes = require('./routes/authRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const courseProjectRoutes = require('./routes/courseProjectRoutes');
@@ -50,6 +51,7 @@ app.get('/api/health', async (request, response) => {
 app.use('/api/auth', authRoutes);
 
 app.use(requireAuth);
+app.use('/api/calendar', calendarRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/courses/:course_id/projects', courseProjectRoutes);

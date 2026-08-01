@@ -1,4 +1,4 @@
-# CampusFlow — REST API Contract (Phase 1–5)
+# CampusFlow — REST API Contract (Phase 1–6)
 
 ## 1. Quy ước chung
 
@@ -69,6 +69,7 @@ Field `errors` chỉ xuất hiện khi có lỗi validation theo từng field.
 | `PATCH`  | `/api/auth/password`               | Đổi password             | Required |
 | `POST`   | `/api/auth/logout`                 | Hủy session              | Required |
 | `GET`    | `/api/dashboard`                   | Tổng quan và deadline    | Required |
+| `GET`    | `/api/calendar`                    | Deadline theo tháng      | Required |
 | `GET`    | `/api/courses`                     | Lấy danh sách course     | Required |
 | `POST`   | `/api/courses`                     | Tạo course               | Required |
 | `PATCH`  | `/api/courses/:course_id`          | Đổi tên course           | Required |
@@ -151,7 +152,44 @@ Trả thống kê toàn workspace và tối đa 6 task chưa hoàn thành cần 
 
 `completion_percentage` được làm tròn từ `done / tổng task`. Nếu chưa có task, giá trị là `0`.
 
-## 6. Course API
+## 6. Calendar API
+
+### `GET /api/calendar`
+
+Lấy toàn bộ Task có due date trong một tháng của user hiện tại.
+
+#### Query parameters
+
+| Query   | Mặc định       | Giá trị hợp lệ                    |
+| ------- | -------------- | --------------------------------- |
+| `month` | Tháng hiện tại | `YYYY-MM`, từ `2000-01`–`2100-12` |
+
+#### Response `200 OK`
+
+```json
+{
+  "data": {
+    "month": "2026-08",
+    "tasks": [
+      {
+        "id": 7,
+        "project_id": 2,
+        "title": "Hoàn thành ERD",
+        "status": "in-progress",
+        "due_date": "2026-08-15",
+        "project_title": "Database Assignment",
+        "course_id": 1,
+        "course_name": "Database Systems",
+        "is_overdue": false
+      }
+    ]
+  }
+}
+```
+
+Month không hợp lệ trả `400 Validation failed` với `errors.month`.
+
+## 7. Course API
 
 ### `GET /api/courses`
 
@@ -272,7 +310,7 @@ Validation của `name` giống endpoint tạo course.
 }
 ```
 
-## 7. Project API
+## 8. Project API
 
 ### `GET /api/courses/:course_id/projects`
 
@@ -405,7 +443,7 @@ Validation của các field giống endpoint tạo project.
 }
 ```
 
-## 8. Task API
+## 9. Task API
 
 ### `GET /api/tasks`
 
@@ -643,7 +681,7 @@ Xóa một task.
 }
 ```
 
-## 9. Quy tắc xử lý endpoint và ID không hợp lệ
+## 10. Quy tắc xử lý endpoint và ID không hợp lệ
 
 Nếu ID trên URL không phải số nguyên dương:
 
@@ -665,7 +703,7 @@ Nếu client gọi endpoint không tồn tại:
 
 Response là `404 Not Found`.
 
-## 10. Authentication API
+## 11. Authentication API
 
 Auth responses gửi header `Cache-Control: no-store`. Register/login thành công tạo server-side session và gửi cookie bằng `Set-Cookie`.
 
