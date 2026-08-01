@@ -1,6 +1,6 @@
 # CampusFlow — Phase 4 Personal Planner
 
-**Status:** Implementation complete — waiting for local API and browser regression
+**Status:** Complete
 
 ## 1. Mục tiêu
 

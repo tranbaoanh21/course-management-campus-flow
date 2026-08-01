@@ -1,6 +1,6 @@
 # CampusFlow
 
-CampusFlow is a full-stack web application for managing student courses, projects, tasks, deadlines, and progress. Phase 2 adds account-based authentication and isolates each user's data, with all application data and sessions persisted in MySQL.
+CampusFlow is a full-stack web application for managing student courses, projects, tasks, deadlines, and progress. It includes account-based data ownership, a progress dashboard, and a cross-project personal task planner, with application data and sessions persisted in MySQL.
 
 ## Features
 
@@ -60,7 +60,7 @@ nvm use
 
 ### 2. Create the database
 
-For a new database, open and run `database/schema.sql` in MySQL Workbench. If upgrading a Phase 1 development database, run `database/migrations/001_phase_2_auth_reset.sql` instead. The migration intentionally resets existing Course/Project/Task data before adding authentication and ownership.
+For a new database, open and run `database/schema.sql` in MySQL Workbench. If upgrading a Phase 1 development database, run `database/migrations/001_reset_for_phase_2_auth.sql` instead. The migration intentionally resets existing Course/Project/Task data before adding authentication and ownership.
 
 Optionally run `database/seed.sql` after registering a user and configuring the seed email inside the script. The seed script does not delete existing records and avoids duplicating its own samples.
 
@@ -120,7 +120,7 @@ Import these files into Postman:
 - `docs/postman/CampusFlow.postman_collection.json`
 - `docs/postman/CampusFlow.local.postman_environment.json`
 
-Select the `CampusFlow Local` environment, set a local `auth_password`, and run the collection folders in numeric order. Folder `05 - Ownership` verifies isolation with a second account. Folder `99 - Cleanup` removes the Course/Project/Task records created by the collection; test accounts remain.
+Select the `CampusFlow Local` environment, set a local `auth_password`, and run the collection folders in numeric order. Folder `07 - Ownership` verifies isolation with a second account. Folder `99 - Cleanup` removes the Course/Project/Task records created by the collection; test accounts remain.
 
 ## Quality checks
 
@@ -149,4 +149,4 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 
 ## Project status
 
-Phase 1 MVP through Phase 3 Dashboard & Deadline Overview are complete. Phase 4 Personal Planner is implemented and waiting for local regression. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
+Phase 1 MVP through Phase 4 Personal Planner are complete. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
