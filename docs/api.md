@@ -1,4 +1,4 @@
-# CampusFlow — REST API Contract (Phase 1–6)
+# CampusFlow — REST API Contract (Phase 1–7)
 
 ## 1. Quy ước chung
 
@@ -326,13 +326,28 @@ Lấy tất cả project thuộc một course.
       "course_id": 1,
       "title": "Database Assignment",
       "description": "Design and implement a relational database.",
-      "due_date": "2026-08-15"
+      "due_date": "2026-08-15",
+      "task_count": 4,
+      "completed_task_count": 1,
+      "overdue_task_count": 1,
+      "completion_percentage": 25,
+      "is_overdue": false,
+      "progress_status": "at-risk"
     }
   ]
 }
 ```
 
 Nếu course tồn tại nhưng chưa có project, `data` là mảng rỗng.
+
+Các field tiến độ được tính trực tiếp từ Task trong MySQL mỗi lần đọc Project:
+
+- `not-started`: chưa có Task và Project chưa quá hạn.
+- `active`: đã có Task, chưa hoàn thành hết và không có dấu hiệu quá hạn.
+- `at-risk`: Project đã quá due date hoặc còn Task quá hạn.
+- `completed`: có ít nhất một Task và tất cả Task đều có status `done`.
+
+`completed` được ưu tiên nếu toàn bộ Task đã xong, kể cả khi due date đã qua.
 
 #### Response `404 Not Found`
 
@@ -372,7 +387,13 @@ Tạo project trong một course đã tồn tại.
     "course_id": 1,
     "title": "Database Assignment",
     "description": "Design and implement a relational database.",
-    "due_date": "2026-08-15"
+    "due_date": "2026-08-15",
+    "task_count": 0,
+    "completed_task_count": 0,
+    "overdue_task_count": 0,
+    "completion_percentage": 0,
+    "is_overdue": false,
+    "progress_status": "not-started"
   }
 }
 ```
@@ -430,7 +451,13 @@ Validation của các field giống endpoint tạo project.
     "course_id": 1,
     "title": "Updated Database Assignment",
     "description": "Updated project description.",
-    "due_date": "2026-09-01"
+    "due_date": "2026-09-01",
+    "task_count": 4,
+    "completed_task_count": 1,
+    "overdue_task_count": 1,
+    "completion_percentage": 25,
+    "is_overdue": false,
+    "progress_status": "at-risk"
   }
 }
 ```

@@ -1,11 +1,11 @@
 {
   "info": {
     "_postman_id": "52b2d04d-1f76-4a50-8f66-0b00c19b7a21",
-    "name": "CampusFlow API - Phase 2",
-    "description": "Version-controlled API tests for CampusFlow authentication and owned CRUD resources. Run folders in order. Postman keeps the HttpOnly session cookie in its cookie jar.",
+    "name": "CampusFlow API - Phase 7",
+    "description": "Version-controlled API tests for CampusFlow authentication, owned CRUD resources, planning views, account settings, and project progress. Run folders in order. Postman keeps the HttpOnly session cookie in its cookie jar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": {
-      "major": 2,
+      "major": 7,
       "minor": 0,
       "patch": 0
     }
@@ -1001,7 +1001,46 @@
       ]
     },
     {
-      "name": "08 - Ownership",
+      "name": "08 - Project Progress",
+      "description": "Verifies Project progress aggregates after the collection task has been marked done.",
+      "item": [
+        {
+          "name": "Get project completion progress",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/courses/{{course_id}}/projects",
+            "description": "Returns task totals, overdue totals, completion percentage, and progress status computed from MySQL task data."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Created project is fully completed', function () {",
+                  "  const projects = pm.response.json().data;",
+                  "  const project = projects.find((item) => String(item.id) === String(pm.environment.get('project_id')));",
+                  "  pm.expect(project).to.exist;",
+                  "  pm.expect(project.task_count).to.be.at.least(1);",
+                  "  pm.expect(project.completed_task_count).to.eql(project.task_count);",
+                  "  pm.expect(project.overdue_task_count).to.eql(0);",
+                  "  pm.expect(project.completion_percentage).to.eql(100);",
+                  "  pm.expect(project.progress_status).to.eql('completed');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09 - Ownership",
       "description": "Switches from the owner account to a second user, verifies private resources return 404, then logs the owner back in for cleanup.",
       "item": [
         {
@@ -1275,7 +1314,7 @@
       ]
     },
     {
-      "name": "09 - Account Settings",
+      "name": "10 - Account Settings",
       "description": "Updates the owner profile, validates password checks, rotates the session, and verifies login with the new password.",
       "item": [
         {

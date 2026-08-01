@@ -1,5 +1,19 @@
 const { pool } = require('../config/db');
+const { normalizeProjectProgress } = require('../utils/projectProgress');
 const { parsePositiveInteger, validateProjectInput } = require('../utils/validation');
+
+const PROJECT_PROGRESS_SELECT = `projects.id, projects.course_id, projects.title,
+  projects.description, projects.due_date,
+  COUNT(tasks.id) AS task_count,
+  COALESCE(SUM(tasks.status = 'done'), 0) AS completed_task_count,
+  COALESCE(
+    SUM(tasks.due_date < CURDATE() AND tasks.status <> 'done'),
+    0
+  ) AS overdue_task_count,
+  (projects.due_date < CURDATE()) AS is_overdue`;
+
+const PROJECT_GROUP_BY = `projects.id, projects.course_id, projects.title,
+  projects.description, projects.due_date`;
 
 async function courseExists(courseId, userId) {
   const [courses] = await pool.execute('SELECT id FROM courses WHERE id = ? AND user_id = ?', [
@@ -11,15 +25,16 @@ async function courseExists(courseId, userId) {
 
 async function findProject(projectId, userId) {
   const [projects] = await pool.execute(
-    `SELECT projects.id, projects.course_id, projects.title,
-            projects.description, projects.due_date
+    `SELECT ${PROJECT_PROGRESS_SELECT}
      FROM projects
      INNER JOIN courses ON courses.id = projects.course_id
-     WHERE projects.id = ? AND courses.user_id = ?`,
+     LEFT JOIN tasks ON tasks.project_id = projects.id
+     WHERE projects.id = ? AND courses.user_id = ?
+     GROUP BY ${PROJECT_GROUP_BY}`,
     [projectId, userId],
   );
 
-  return projects[0] || null;
+  return projects[0] ? normalizeProjectProgress(projects[0]) : null;
 }
 
 async function getProjectsByCourse(request, response) {
@@ -38,15 +53,18 @@ async function getProjectsByCourse(request, response) {
   }
 
   const [projects] = await pool.execute(
-    `SELECT id, course_id, title, description, due_date
+    `SELECT ${PROJECT_PROGRESS_SELECT}
      FROM projects
-     WHERE course_id = ?
-     ORDER BY due_date ASC, id DESC`,
-    [courseId],
+     INNER JOIN courses ON courses.id = projects.course_id
+     LEFT JOIN tasks ON tasks.project_id = projects.id
+     WHERE projects.course_id = ? AND courses.user_id = ?
+     GROUP BY ${PROJECT_GROUP_BY}
+     ORDER BY projects.due_date ASC, projects.id DESC`,
+    [courseId, request.user.id],
   );
 
   return response.status(200).json({
-    data: projects,
+    data: projects.map(normalizeProjectProgress),
   });
 }
 
@@ -84,13 +102,7 @@ async function createProject(request, response) {
   );
 
   return response.status(201).json({
-    data: {
-      id: result.insertId,
-      course_id: courseId,
-      title: trimmedTitle,
-      description: normalizedDescription,
-      due_date: dueDate,
-    },
+    data: await findProject(result.insertId, request.user.id),
   });
 }
 
