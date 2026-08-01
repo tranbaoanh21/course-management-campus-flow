@@ -1,11 +1,11 @@
 {
   "info": {
     "_postman_id": "52b2d04d-1f76-4a50-8f66-0b00c19b7a21",
-    "name": "CampusFlow API - Phase 9",
+    "name": "CampusFlow API - Phase 10",
     "description": "Version-controlled API tests for CampusFlow authentication, owned CRUD resources, planning views, account settings, and project progress. Run folders in order. Postman keeps the HttpOnly session cookie in its cookie jar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": {
-      "major": 9,
+      "major": 10,
       "minor": 0,
       "patch": 0
     }
@@ -1141,7 +1141,54 @@
       ]
     },
     {
-      "name": "11 - Ownership",
+      "name": "11 - Data Export",
+      "description": "Exports the authenticated account and its complete owned Course, Project, and Task tree without sensitive credentials.",
+      "item": [
+        {
+          "name": "Export owner data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/export",
+            "description": "Returns a portable versioned JSON backup for the owner account."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Export contains the created resource tree', function () {",
+                  "  const data = pm.response.json().data;",
+                  "  const course = data.courses.find((item) => String(item.id) === String(pm.environment.get('course_id')));",
+                  "  const project = course?.projects.find((item) => String(item.id) === String(pm.environment.get('project_id')));",
+                  "  const task = project?.tasks.find((item) => String(item.id) === String(pm.environment.get('task_id')));",
+                  "  pm.expect(data.format).to.eql('campusflow-export');",
+                  "  pm.expect(data.version).to.eql(1);",
+                  "  pm.expect(String(data.account.id)).to.eql(String(pm.environment.get('auth_user_id')));",
+                  "  pm.expect(course).to.exist;",
+                  "  pm.expect(project).to.exist;",
+                  "  pm.expect(task).to.exist;",
+                  "});",
+                  "",
+                  "pm.test('Export excludes sensitive fields', function () {",
+                  "  const serialized = JSON.stringify(pm.response.json().data);",
+                  "  pm.expect(serialized).not.to.include('password_hash');",
+                  "  pm.expect(serialized).not.to.include('session_data');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12 - Ownership",
       "description": "Switches from the owner account to a second user, verifies private resources return 404, then logs the owner back in for cleanup.",
       "item": [
         {
@@ -1271,6 +1318,35 @@
                   "  pm.expect(data.courses.map((item) => String(item.id))).not.to.include(String(pm.environment.get('course_id')));",
                   "  pm.expect(data.projects.map((item) => String(item.id))).not.to.include(String(pm.environment.get('project_id')));",
                   "  pm.expect(data.tasks.map((item) => String(item.id))).not.to.include(String(pm.environment.get('task_id')));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Second user export is isolated",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/export",
+            "description": "A new second user receives only their profile and an empty learning-data tree."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Export belongs only to the second user', function () {",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data.account.email).to.eql(pm.environment.get('second_auth_email'));",
+                  "  pm.expect(data.summary).to.deep.eql({ courses: 0, projects: 0, tasks: 0 });",
+                  "  pm.expect(data.courses).to.deep.eql([]);",
                   "});"
                 ]
               }
@@ -1470,7 +1546,7 @@
       ]
     },
     {
-      "name": "12 - Account Settings",
+      "name": "13 - Account Settings",
       "description": "Updates the owner profile, validates password checks, rotates the session, and verifies login with the new password.",
       "item": [
         {

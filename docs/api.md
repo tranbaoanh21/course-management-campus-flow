@@ -1,4 +1,4 @@
-# CampusFlow — REST API Contract (Phase 1–9)
+# CampusFlow — REST API Contract (Phase 1–10)
 
 ## 1. Quy ước chung
 
@@ -71,6 +71,7 @@ Field `errors` chỉ xuất hiện khi có lỗi validation theo từng field.
 | `GET`    | `/api/dashboard`                   | Tổng quan và deadline    | Required |
 | `GET`    | `/api/calendar`                    | Deadline theo tháng      | Required |
 | `GET`    | `/api/search`                      | Tìm toàn workspace       | Required |
+| `GET`    | `/api/export`                      | Xuất backup JSON cá nhân | Required |
 | `GET`    | `/api/courses`                     | Lấy danh sách course     | Required |
 | `POST`   | `/api/courses`                     | Tạo course               | Required |
 | `GET`    | `/api/courses/:course_id/overview` | Tổng quan một course     | Required |
@@ -251,7 +252,63 @@ Mỗi nhóm trả tối đa 5 Course, 5 Project và 8 Task. `counts` là số k�
 
 Query thiếu, ngắn hơn 2 hoặc dài hơn 100 ký tự trả `400 Validation failed` với `errors.q`.
 
-## 8. Course API
+## 8. Data Export API
+
+### `GET /api/export`
+
+Xuất profile và toàn bộ dữ liệu học tập thuộc user hiện tại thành một JSON tree có thể tải về làm backup.
+
+#### Response `200 OK`
+
+```json
+{
+  "data": {
+    "format": "campusflow-export",
+    "version": 1,
+    "exported_at": "2026-08-01T08:30:00.000Z",
+    "account": {
+      "id": 1,
+      "name": "Huy Tran",
+      "email": "huy@example.com",
+      "created_at": "2026-07-01T02:00:00.000Z"
+    },
+    "summary": {
+      "courses": 1,
+      "projects": 1,
+      "tasks": 1
+    },
+    "courses": [
+      {
+        "id": 10,
+        "name": "Database Systems",
+        "projects": [
+          {
+            "id": 20,
+            "course_id": 10,
+            "title": "Schema Design",
+            "description": null,
+            "due_date": "2026-08-15",
+            "tasks": [
+              {
+                "id": 30,
+                "project_id": 20,
+                "title": "Draw ERD",
+                "description": null,
+                "status": "done",
+                "due_date": "2026-08-10"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Export không chứa `password_hash`, session cookie hoặc bảng `sessions`. User chưa có dữ liệu vẫn nhận profile, summary bằng `0` và mảng `courses` rỗng.
+
+## 9. Course API
 
 ### `GET /api/courses`
 
@@ -413,7 +470,7 @@ Validation của `name` giống endpoint tạo course.
 }
 ```
 
-## 9. Project API
+## 10. Project API
 
 ### `GET /api/courses/:course_id/projects`
 
@@ -573,7 +630,7 @@ Validation của các field giống endpoint tạo project.
 }
 ```
 
-## 10. Task API
+## 11. Task API
 
 ### `GET /api/tasks`
 
@@ -811,7 +868,7 @@ Xóa một task.
 }
 ```
 
-## 11. Quy tắc xử lý endpoint và ID không hợp lệ
+## 12. Quy tắc xử lý endpoint và ID không hợp lệ
 
 Nếu ID trên URL không phải số nguyên dương:
 
@@ -833,7 +890,7 @@ Nếu client gọi endpoint không tồn tại:
 
 Response là `404 Not Found`.
 
-## 12. Authentication API
+## 13. Authentication API
 
 Auth responses gửi header `Cache-Control: no-store`. Register/login thành công tạo server-side session và gửi cookie bằng `Set-Cookie`.
 

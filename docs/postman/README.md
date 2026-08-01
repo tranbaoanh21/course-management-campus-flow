@@ -1,6 +1,6 @@
 # CampusFlow Postman workspace
 
-These files provide version-controlled API requests and tests for CampusFlow authentication, owned CRUD endpoints, dashboard overview, the personal planner, account settings, the monthly calendar, project progress, course overview, and global search.
+These files provide version-controlled API requests and tests for CampusFlow authentication, owned CRUD endpoints, dashboard overview, the personal planner, account settings, the monthly calendar, project progress, course overview, global search, and personal data export.
 
 ## Import
 
@@ -31,9 +31,10 @@ Run the folders in numeric order:
 9. `08 - Project Progress`
 10. `09 - Course Overview`
 11. `10 - Global Search`
-12. `11 - Ownership`
-13. `12 - Account Settings`
-14. `99 - Cleanup`
+12. `11 - Data Export`
+13. `12 - Ownership`
+14. `13 - Account Settings`
+15. `99 - Cleanup`
 
 The auth requests generate a unique local email, save the created user ID, and rely on Postman's cookie jar for the HttpOnly session cookie. The create requests automatically store `course_id`, `project_id`, and `task_id` in the active environment. Ownership creates a second user and verifies that the first user's resources stay private. Account Settings generates `auth_new_password`, rotates the owner session, and signs back in before Cleanup. Cleanup deletes only the owner records referenced by those variables; test users remain in the local database.
 
