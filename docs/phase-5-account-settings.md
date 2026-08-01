@@ -1,6 +1,6 @@
 # CampusFlow — Phase 5 Account Settings
 
-**Status:** Implementation complete — waiting for local API and browser regression
+**Status:** Complete
 
 ## 1. Mục tiêu
 

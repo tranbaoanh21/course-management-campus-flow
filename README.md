@@ -151,4 +151,4 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 
 ## Project status
 
-Phase 1 MVP through Phase 4 Personal Planner are complete. Phase 5 Account Settings is implemented and waiting for local regression. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
+Phase 1 MVP through Phase 5 Account Settings are complete. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred to later phases.
