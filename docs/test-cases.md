@@ -1,4 +1,4 @@
-# CampusFlow — Phase 1–8 Test Cases
+# CampusFlow — Phase 1–9 Test Cases
 
 ## 1. Mục đích
 
@@ -153,7 +153,22 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | CO-08 | Trạng thái tải/lỗi  | Mở Course khi API chậm hoặc tạm dừng backend         | UI có skeleton; khi lỗi có thông báo và nút **Thử lại**                |
 | CO-09 | Responsive overview | Mở Course trên mobile, tablet và desktop             | Các metric card đổi từ một cột sang hai hoặc bốn cột, không tràn ngang |
 
-## 14. API và chất lượng giao diện
+## 14. Global Search
+
+| ID    | Trường hợp          | Thao tác                                       | Kết quả mong đợi                                                   |
+| ----- | ------------------- | ---------------------------------------------- | ------------------------------------------------------------------ |
+| GS-01 | Search Course       | Nhập một phần name của Course                  | Course phù hợp xuất hiện trong nhóm Courses                        |
+| GS-02 | Search Project/Task | Nhập một phần title của Project hoặc Task      | Kết quả xuất hiện đúng nhóm cùng Course/Project context            |
+| GS-03 | Mở kết quả          | Click Course, Project hoặc Task trong modal    | Modal đóng và workspace mở đúng Course/Project chứa kết quả        |
+| GS-04 | Debounce            | Gõ liên tục và quan sát Network tab            | API chỉ được gọi sau khoảng 300 ms kể từ phím cuối                 |
+| GS-05 | Query quá ngắn      | Nhập dưới 2 ký tự; gọi API trực tiếp với `q=a` | UI chưa gọi API; API trực tiếp trả `400` với `errors.q`            |
+| GS-06 | Không có kết quả    | Tìm chuỗi không xuất hiện trong dữ liệu        | Ba nhóm rỗng và UI hiển thị empty state                            |
+| GS-07 | Task quá hạn        | Tìm title của Task quá hạn chưa hoàn thành     | Task có nhãn quá hạn và được ưu tiên trong nhóm Task               |
+| GS-08 | Ownership search    | User B tìm từ khóa chỉ tồn tại trong dữ liệu A | Không trả Course, Project hoặc Task của user A                     |
+| GS-09 | Giới hạn kết quả    | Có nhiều record cùng khớp một query            | Response tối đa 5 Course, 5 Project và 8 Task                      |
+| GS-10 | Search responsive   | Mở và sử dụng modal trên mobile                | Input và danh sách không tràn; modal có thể cuộn khi nhiều kết quả |
+
+## 15. API và chất lượng giao diện
 
 | ID   | Trường hợp             | Thao tác                                   | Kết quả mong đợi                                                                             |
 | ---- | ---------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
@@ -168,6 +183,6 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | Q-09 | Xác nhận xóa           | Bấm xóa rồi xác nhận trong dialog          | Nút hiện đang xử lý; dialog đóng sau khi API thành công                                      |
 | Q-10 | Feedback thành công    | Tạo, sửa, đổi status hoặc xóa dữ liệu      | Toast thành công xuất hiện và tự đóng sau vài giây                                           |
 
-## 15. Ghi nhận kết quả
+## 16. Ghi nhận kết quả
 
 Khi test một phiên bản trước khi merge hoặc release, ghi lại commit, ngày test và các test case thất bại trong issue hoặc pull request. Không chỉnh cột “Kết quả mong đợi” để che một lỗi đang tồn tại.

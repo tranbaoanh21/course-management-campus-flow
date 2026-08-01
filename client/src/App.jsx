@@ -8,6 +8,7 @@ import DashboardOverview from './features/dashboard/DashboardOverview';
 import AccountSettings from './features/settings/AccountSettings';
 import PersonalPlanner from './features/tasks/PersonalPlanner';
 import ProjectManager from './features/projects/ProjectManager';
+import GlobalSearch from './features/search/GlobalSearch';
 import TaskManager from './features/tasks/TaskManager';
 import useAuth from './hooks/useAuth';
 import useToast from './hooks/useToast';
@@ -63,6 +64,32 @@ function Workspace({ user, isLoggingOut, onLogout }) {
     setActiveView('settings');
     setSelectedCourse(null);
     setSelectedProject(null);
+  }
+
+  function handleOpenSearchResult(type, item) {
+    setActiveView('course');
+
+    if (type === 'course') {
+      setSelectedCourse(item);
+      setSelectedProject(null);
+      return;
+    }
+
+    setSelectedCourse({
+      id: item.course_id,
+      name: item.course_name,
+    });
+
+    if (type === 'project') {
+      setSelectedProject(item);
+      return;
+    }
+
+    setSelectedProject({
+      id: item.project_id,
+      course_id: item.course_id,
+      title: item.project_title,
+    });
   }
 
   function handleProjectsChanged() {
@@ -131,6 +158,7 @@ function Workspace({ user, isLoggingOut, onLogout }) {
                 Lịch
               </button>
             </nav>
+            <GlobalSearch onOpenResult={handleOpenSearchResult} />
           </div>
           <div className="flex items-center gap-3">
             <button
