@@ -48,7 +48,7 @@ function formatDate(dateString) {
   }).format(new Date(`${dateString}T00:00:00`));
 }
 
-function TaskManager({ selectedProject }) {
+function TaskManager({ selectedProject, onTasksChanged }) {
   const { showToast } = useToast();
   const [tasks, setTasks] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -182,6 +182,8 @@ function TaskManager({ selectedProject }) {
         showToast('Task đã được tạo.');
       }
 
+      onTasksChanged();
+
       closeForm();
     } catch (error) {
       setFormErrors(error.fieldErrors || {});
@@ -201,6 +203,7 @@ function TaskManager({ selectedProject }) {
         currentTasks.map((task) => (task.id === taskId ? updatedTask : task)),
       );
       showToast(`Task đã chuyển sang ${STATUS_CONFIG[status].label.toLocaleLowerCase('vi')}.`);
+      onTasksChanged();
     } catch (error) {
       setActionError(error.message);
     } finally {
@@ -227,6 +230,7 @@ function TaskManager({ selectedProject }) {
         currentTasks.filter((currentTask) => currentTask.id !== taskToDelete.id),
       );
       showToast('Task đã được xóa.');
+      onTasksChanged();
     } catch (error) {
       setActionError(error.message);
     } finally {

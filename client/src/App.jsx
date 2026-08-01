@@ -25,6 +25,7 @@ function Workspace({ user, isLoggingOut, onLogout }) {
   const [activeView, setActiveView] = useState('dashboard');
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [projectRefreshKey, setProjectRefreshKey] = useState(0);
 
   function handleSelectCourse(course) {
     setActiveView(course ? 'course' : 'dashboard');
@@ -209,12 +210,16 @@ function Workspace({ user, isLoggingOut, onLogout }) {
                 <ProjectManager
                   selectedCourse={selectedCourse}
                   selectedProjectId={selectedProject?.id}
+                  refreshKey={projectRefreshKey}
                   onSelectProject={setSelectedProject}
                 />
               </div>
 
               <div className="mt-8">
-                <TaskManager selectedProject={selectedProject} />
+                <TaskManager
+                  selectedProject={selectedProject}
+                  onTasksChanged={() => setProjectRefreshKey((key) => key + 1)}
+                />
               </div>
             </div>
           )}

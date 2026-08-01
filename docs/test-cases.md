@@ -1,4 +1,4 @@
-# CampusFlow — Phase 1–5 Test Cases
+# CampusFlow — Phase 1–7 Test Cases
 
 ## 1. Mục đích
 
@@ -126,7 +126,20 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | K-07 | Ownership calendar  | So sánh cùng tháng giữa hai user  | Mỗi user chỉ thấy deadline của chính mình              |
 | K-08 | Calendar mobile     | Mở trên viewport mobile           | Navigation không tràn; calendar có thể cuộn ngang      |
 
-## 12. API và chất lượng giao diện
+## 12. Project Progress Tracking
+
+| ID    | Trường hợp              | Thao tác                                                    | Kết quả mong đợi                                                            |
+| ----- | ----------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------- |
+| PP-01 | Project chưa có Task    | Tạo Project mới có due date trong tương lai                 | Hiển thị `0%`, `0/0 task` và nhãn **Chưa bắt đầu**                          |
+| PP-02 | Project đang thực hiện  | Tạo nhiều Task và hoàn thành một phần                       | Progress bar và phần trăm khớp số Task `done` trên tổng Task                |
+| PP-03 | Project có rủi ro       | Để Project hoặc Task chưa hoàn thành quá hạn                | Hiển thị nhãn **Có rủi ro** và số Task quá hạn                              |
+| PP-04 | Project hoàn thành      | Đổi toàn bộ Task của Project sang `done`                    | Tiến độ thành `100%` và nhãn **Hoàn thành**                                 |
+| PP-05 | Đồng bộ sau mutation    | Tạo, đổi status hoặc xóa Task trong Project đang chọn       | Project card tự tải lại số liệu tiến độ, không cần refresh trình duyệt      |
+| PP-06 | Lọc theo tiến độ        | Chọn từng filter trong danh sách Project                    | Chỉ hiển thị Project có `progress_status` tương ứng                         |
+| PP-07 | Ownership progress      | User khác gọi danh sách Project của Course không thuộc mình | API trả `404`; không lộ số liệu Task hay tiến độ của chủ sở hữu             |
+| PP-08 | Dữ liệu progress từ API | Gọi GET Project sau khi thay đổi Task                       | Các count, phần trăm và trạng thái được tính lại từ dữ liệu hiện có ở MySQL |
+
+## 13. API và chất lượng giao diện
 
 | ID   | Trường hợp             | Thao tác                                   | Kết quả mong đợi                                                                             |
 | ---- | ---------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
@@ -141,6 +154,6 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | Q-09 | Xác nhận xóa           | Bấm xóa rồi xác nhận trong dialog          | Nút hiện đang xử lý; dialog đóng sau khi API thành công                                      |
 | Q-10 | Feedback thành công    | Tạo, sửa, đổi status hoặc xóa dữ liệu      | Toast thành công xuất hiện và tự đóng sau vài giây                                           |
 
-## 13. Ghi nhận kết quả
+## 14. Ghi nhận kết quả
 
 Khi test một phiên bản trước khi merge hoặc release, ghi lại commit, ngày test và các test case thất bại trong issue hoặc pull request. Không chỉnh cột “Kết quả mong đợi” để che một lỗi đang tồn tại.
