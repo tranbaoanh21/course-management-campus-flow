@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import AuthContext from '../contexts/AuthContext';
-import { getCurrentUser, loginAccount, logoutAccount, registerAccount } from '../services/authApi';
+import {
+  changePasswordAccount,
+  getCurrentUser,
+  loginAccount,
+  logoutAccount,
+  registerAccount,
+  updateProfileAccount,
+} from '../services/authApi';
 
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -89,6 +96,16 @@ function AuthProvider({ children }) {
     setSessionError('');
   }, []);
 
+  const updateProfile = useCallback(async (profile) => {
+    const updatedUser = await updateProfileAccount(profile);
+    setUser(updatedUser);
+    return updatedUser;
+  }, []);
+
+  const changePassword = useCallback(async (passwords) => {
+    await changePasswordAccount(passwords);
+  }, []);
+
   const contextValue = useMemo(
     () => ({
       user,
@@ -97,9 +114,21 @@ function AuthProvider({ children }) {
       register,
       login,
       logout,
+      updateProfile,
+      changePassword,
       restoreSession,
     }),
-    [user, isLoading, sessionError, register, login, logout, restoreSession],
+    [
+      user,
+      isLoading,
+      sessionError,
+      register,
+      login,
+      logout,
+      updateProfile,
+      changePassword,
+      restoreSession,
+    ],
   );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

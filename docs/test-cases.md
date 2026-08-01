@@ -1,4 +1,4 @@
-# CampusFlow — Phase 1 & 2 Test Cases
+# CampusFlow — Phase 1–5 Test Cases
 
 ## 1. Mục đích
 
@@ -100,7 +100,20 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | L-07 | Đổi status nhanh | Đổi status trực tiếp trong Planner                   | MySQL cập nhật; danh sách và filter được tải lại    |
 | L-08 | Ownership        | Đăng nhập user khác và gọi global Task API           | Không thấy Task của user đầu tiên                   |
 
-## 10. API và chất lượng giao diện
+## 10. Account Settings
+
+| ID   | Trường hợp           | Thao tác                                          | Kết quả mong đợi                                        |
+| ---- | -------------------- | ------------------------------------------------- | ------------------------------------------------------- |
+| S-01 | Mở settings          | Click tên/avatar trên header                      | Hiển thị name, email read-only và form đổi password     |
+| S-02 | Đổi display name     | Nhập name hợp lệ và lưu                           | Header cập nhật ngay; refresh vẫn giữ name mới          |
+| S-03 | Name không hợp lệ    | Gửi name rỗng hoặc dài quá 100 ký tự              | UI/API trả field error; database không đổi              |
+| S-04 | Current password sai | Nhập current password không đúng                  | API trả `400`; password và session không đổi            |
+| S-05 | Password mới sai     | Nhập password dưới 12 ký tự hoặc trùng current    | UI/API từ chối với lỗi `new_password`                   |
+| S-06 | Đổi password hợp lệ  | Nhập current password đúng và password mới hợp lệ | Password hash thay đổi; current session vẫn hoạt động   |
+| S-07 | Session revocation   | Đăng nhập cùng user ở browser khác trước khi đổi  | Session browser khác nhận `401` ở request tiếp theo     |
+| S-08 | Login sau khi đổi    | Logout; thử password cũ rồi password mới          | Password cũ thất bại; password mới đăng nhập thành công |
+
+## 11. API và chất lượng giao diện
 
 | ID   | Trường hợp             | Thao tác                                   | Kết quả mong đợi                                                                             |
 | ---- | ---------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
@@ -115,6 +128,6 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | Q-09 | Xác nhận xóa           | Bấm xóa rồi xác nhận trong dialog          | Nút hiện đang xử lý; dialog đóng sau khi API thành công                                      |
 | Q-10 | Feedback thành công    | Tạo, sửa, đổi status hoặc xóa dữ liệu      | Toast thành công xuất hiện và tự đóng sau vài giây                                           |
 
-## 11. Ghi nhận kết quả
+## 12. Ghi nhận kết quả
 
 Khi test một phiên bản trước khi merge hoặc release, ghi lại commit, ngày test và các test case thất bại trong issue hoặc pull request. Không chỉnh cột “Kết quả mong đợi” để che một lỗi đang tồn tại.

@@ -1,4 +1,4 @@
-# CampusFlow — REST API Contract (Phase 1–4)
+# CampusFlow — REST API Contract (Phase 1–5)
 
 ## 1. Quy ước chung
 
@@ -65,6 +65,8 @@ Field `errors` chỉ xuất hiện khi có lỗi validation theo từng field.
 | `POST`   | `/api/auth/register`               | Đăng ký và tạo session   | Public   |
 | `POST`   | `/api/auth/login`                  | Đăng nhập và tạo session | Public   |
 | `GET`    | `/api/auth/me`                     | Lấy user hiện tại        | Required |
+| `PATCH`  | `/api/auth/profile`                | Đổi tên hiển thị         | Required |
+| `PATCH`  | `/api/auth/password`               | Đổi password             | Required |
 | `POST`   | `/api/auth/logout`                 | Hủy session              | Required |
 | `GET`    | `/api/dashboard`                   | Tổng quan và deadline    | Required |
 | `GET`    | `/api/courses`                     | Lấy danh sách course     | Required |
@@ -782,6 +784,55 @@ Lấy public profile của user thuộc session hiện tại. Endpoint này đư
   "message": "Authentication required."
 }
 ```
+
+### `PATCH /api/auth/profile`
+
+Cập nhật display name của user hiện tại. Email không thể thay đổi trong phase này.
+
+#### Request body
+
+```json
+{
+  "name": "Bao Anh"
+}
+```
+
+#### Response `200 OK`
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Bao Anh",
+    "email": "student@hcmut.edu.vn"
+  }
+}
+```
+
+Name được trim, bắt buộc và không dài quá 100 ký tự.
+
+### `PATCH /api/auth/password`
+
+Đổi password của user hiện tại. Thành công sẽ thu hồi các session cũ và rotate current session.
+
+#### Request body
+
+```json
+{
+  "current_password": "current private passphrase",
+  "new_password": "new private passphrase"
+}
+```
+
+#### Response `200 OK`
+
+```json
+{
+  "message": "Password changed successfully."
+}
+```
+
+Current password sai trả `400` với `errors.current_password`. Password mới phải từ 12 đến 128 ký tự và khác current password.
 
 ### `POST /api/auth/logout`
 
