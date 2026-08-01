@@ -1,4 +1,4 @@
-# CampusFlow — REST API Contract (Phase 1–7)
+# CampusFlow — REST API Contract (Phase 1–8)
 
 ## 1. Quy ước chung
 
@@ -72,6 +72,7 @@ Field `errors` chỉ xuất hiện khi có lỗi validation theo từng field.
 | `GET`    | `/api/calendar`                    | Deadline theo tháng      | Required |
 | `GET`    | `/api/courses`                     | Lấy danh sách course     | Required |
 | `POST`   | `/api/courses`                     | Tạo course               | Required |
+| `GET`    | `/api/courses/:course_id/overview` | Tổng quan một course     | Required |
 | `PATCH`  | `/api/courses/:course_id`          | Đổi tên course           | Required |
 | `DELETE` | `/api/courses/:course_id`          | Xóa course               | Required |
 | `GET`    | `/api/courses/:course_id/projects` | Lấy project theo course  | Required |
@@ -215,6 +216,47 @@ Nếu chưa có course, `data` là mảng rỗng:
   "data": []
 }
 ```
+
+### `GET /api/courses/:course_id/overview`
+
+Trả thống kê và deadline chưa hoàn thành gần nhất của một Course thuộc user hiện tại.
+
+#### Response `200 OK`
+
+```json
+{
+  "data": {
+    "course": {
+      "id": 1,
+      "name": "Database Systems"
+    },
+    "counts": {
+      "projects": 3,
+      "tasks": 8
+    },
+    "task_status": {
+      "todo": 3,
+      "in_progress": 2,
+      "done": 3,
+      "overdue": 1
+    },
+    "completion_percentage": 38,
+    "next_deadline": {
+      "id": 7,
+      "project_id": 2,
+      "title": "Hoàn thành ERD",
+      "status": "in-progress",
+      "due_date": "2026-08-15",
+      "project_title": "Database Assignment",
+      "is_overdue": false
+    }
+  }
+}
+```
+
+`next_deadline` là Task chưa `done` có due date sớm nhất, hoặc `null` nếu không còn Task tồn đọng. `completion_percentage` là phần trăm Task `done` trên tổng Task và bằng `0` khi Course chưa có Task.
+
+Course không tồn tại hoặc thuộc user khác trả `404 Course not found.`.
 
 ### `POST /api/courses`
 

@@ -1,11 +1,11 @@
 {
   "info": {
     "_postman_id": "52b2d04d-1f76-4a50-8f66-0b00c19b7a21",
-    "name": "CampusFlow API - Phase 7",
+    "name": "CampusFlow API - Phase 8",
     "description": "Version-controlled API tests for CampusFlow authentication, owned CRUD resources, planning views, account settings, and project progress. Run folders in order. Postman keeps the HttpOnly session cookie in its cookie jar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": {
-      "major": 7,
+      "major": 8,
       "minor": 0,
       "patch": 0
     }
@@ -1040,7 +1040,46 @@
       ]
     },
     {
-      "name": "09 - Ownership",
+      "name": "09 - Course Overview",
+      "description": "Verifies Course-level aggregates and the empty next-deadline state after all collection tasks are done.",
+      "item": [
+        {
+          "name": "Get course overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/courses/{{course_id}}/overview",
+            "description": "Returns Course Project/Task totals, task status counts, completion, overdue count, and the next unfinished deadline."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Course overview matches completed collection data', function () {",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(String(data.course.id)).to.eql(String(pm.environment.get('course_id')));",
+                  "  pm.expect(data.counts.projects).to.be.at.least(1);",
+                  "  pm.expect(data.counts.tasks).to.be.at.least(1);",
+                  "  pm.expect(data.task_status.done).to.eql(data.counts.tasks);",
+                  "  pm.expect(data.task_status.overdue).to.eql(0);",
+                  "  pm.expect(data.completion_percentage).to.eql(100);",
+                  "  pm.expect(data.next_deadline).to.eql(null);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10 - Ownership",
       "description": "Switches from the owner account to a second user, verifies private resources return 404, then logs the owner back in for cleanup.",
       "item": [
         {
@@ -1141,6 +1180,32 @@
                   "  const courses = pm.response.json().data;",
                   "  const ownerCourseId = String(pm.environment.get('course_id'));",
                   "  pm.expect(courses.some((course) => String(course.id) === ownerCourseId)).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject owner course overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/courses/{{course_id}}/overview",
+            "description": "A second user must not receive aggregate data for the owner's Course."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Private course overview is hidden', function () {",
+                  "  pm.expect(pm.response.json().message).to.eql('Course not found.');",
                   "});"
                 ]
               }
@@ -1314,7 +1379,7 @@
       ]
     },
     {
-      "name": "10 - Account Settings",
+      "name": "11 - Account Settings",
       "description": "Updates the owner profile, validates password checks, rotates the session, and verifies login with the new password.",
       "item": [
         {
