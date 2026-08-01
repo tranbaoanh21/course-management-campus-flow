@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import AuthScreen, { AuthLoadingScreen, SessionErrorScreen } from './features/auth/AuthScreen';
+import CalendarView from './features/calendar/CalendarView';
 import CourseManager from './features/courses/CourseManager';
 import DashboardOverview from './features/dashboard/DashboardOverview';
 import AccountSettings from './features/settings/AccountSettings';
@@ -49,6 +50,12 @@ function Workspace({ user, isLoggingOut, onLogout }) {
     setSelectedProject(null);
   }
 
+  function handleShowCalendar() {
+    setActiveView('calendar');
+    setSelectedCourse(null);
+    setSelectedProject(null);
+  }
+
   function handleShowSettings() {
     setActiveView('settings');
     setSelectedCourse(null);
@@ -74,7 +81,10 @@ function Workspace({ user, isLoggingOut, onLogout }) {
                 <p className="text-xs text-slate-500">Không gian học tập cá nhân</p>
               </div>
             </button>
-            <nav className="flex items-center rounded-lg bg-slate-100 p-1" aria-label="Workspace">
+            <nav
+              className="hidden items-center rounded-lg bg-slate-100 p-1 md:flex"
+              aria-label="Workspace"
+            >
               <button
                 type="button"
                 className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition sm:px-3 ${
@@ -96,6 +106,17 @@ function Workspace({ user, isLoggingOut, onLogout }) {
                 onClick={handleShowPlanner}
               >
                 Tất cả task
+              </button>
+              <button
+                type="button"
+                className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition sm:px-3 ${
+                  activeView === 'calendar'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+                onClick={handleShowCalendar}
+              >
+                Lịch
               </button>
             </nav>
           </div>
@@ -126,6 +147,20 @@ function Workspace({ user, isLoggingOut, onLogout }) {
             </button>
           </div>
         </div>
+        <nav
+          className="grid grid-cols-3 border-t border-slate-100 bg-white px-4 py-2 md:hidden"
+          aria-label="Workspace mobile"
+        >
+          <MobileNavButton active={activeView === 'dashboard'} onClick={handleShowDashboard}>
+            Tổng quan
+          </MobileNavButton>
+          <MobileNavButton active={activeView === 'planner'} onClick={handleShowPlanner}>
+            Tasks
+          </MobileNavButton>
+          <MobileNavButton active={activeView === 'calendar'} onClick={handleShowCalendar}>
+            Lịch
+          </MobileNavButton>
+        </nav>
       </header>
 
       <div className="mx-auto grid max-w-[1440px] lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[17.5rem_minmax(0,1fr)]">
@@ -140,6 +175,8 @@ function Workspace({ user, isLoggingOut, onLogout }) {
             <DashboardOverview user={user} />
           ) : activeView === 'planner' ? (
             <PersonalPlanner onOpenCourse={handleSelectCourse} />
+          ) : activeView === 'calendar' ? (
+            <CalendarView onOpenCourse={handleSelectCourse} />
           ) : activeView === 'settings' ? (
             <AccountSettings />
           ) : (
@@ -184,6 +221,20 @@ function Workspace({ user, isLoggingOut, onLogout }) {
         </main>
       </div>
     </div>
+  );
+}
+
+function MobileNavButton({ active, children, onClick }) {
+  return (
+    <button
+      type="button"
+      className={`rounded-lg px-3 py-2 text-xs font-semibold ${
+        active ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500'
+      }`}
+      onClick={onClick}
+    >
+      {children}
+    </button>
   );
 }
 

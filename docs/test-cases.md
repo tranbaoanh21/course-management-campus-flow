@@ -113,7 +113,20 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | S-07 | Session revocation   | Đăng nhập cùng user ở browser khác trước khi đổi  | Session browser khác nhận `401` ở request tiếp theo     |
 | S-08 | Login sau khi đổi    | Logout; thử password cũ rồi password mới          | Password cũ thất bại; password mới đăng nhập thành công |
 
-## 11. API và chất lượng giao diện
+## 11. Calendar & Monthly Agenda
+
+| ID   | Trường hợp          | Thao tác                          | Kết quả mong đợi                                       |
+| ---- | ------------------- | --------------------------------- | ------------------------------------------------------ |
+| K-01 | Mở calendar         | Chọn tab **Lịch**                 | Hiển thị tháng hiện tại và task theo đúng due date     |
+| K-02 | Chuyển tháng        | Bấm tháng trước hoặc tháng sau    | API tải tháng mới; grid và agenda không giữ dữ liệu cũ |
+| K-03 | Quay về hôm nay     | Bấm **Hôm nay**                   | Calendar về tháng hiện tại và chọn ngày hôm nay        |
+| K-04 | Selected-day agenda | Chọn ngày có nhiều task           | Panel bên phải hiển thị đúng task, Course và Project   |
+| K-05 | Filter calendar     | Lọc status hoặc quá hạn           | Grid và agenda cùng chỉ hiển thị task phù hợp          |
+| K-06 | Month không hợp lệ  | Gọi `/api/calendar?month=2026-13` | API trả `400` với `errors.month`                       |
+| K-07 | Ownership calendar  | So sánh cùng tháng giữa hai user  | Mỗi user chỉ thấy deadline của chính mình              |
+| K-08 | Calendar mobile     | Mở trên viewport mobile           | Navigation không tràn; calendar có thể cuộn ngang      |
+
+## 12. API và chất lượng giao diện
 
 | ID   | Trường hợp             | Thao tác                                   | Kết quả mong đợi                                                                             |
 | ---- | ---------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
@@ -128,6 +141,6 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | Q-09 | Xác nhận xóa           | Bấm xóa rồi xác nhận trong dialog          | Nút hiện đang xử lý; dialog đóng sau khi API thành công                                      |
 | Q-10 | Feedback thành công    | Tạo, sửa, đổi status hoặc xóa dữ liệu      | Toast thành công xuất hiện và tự đóng sau vài giây                                           |
 
-## 12. Ghi nhận kết quả
+## 13. Ghi nhận kết quả
 
 Khi test một phiên bản trước khi merge hoặc release, ghi lại commit, ngày test và các test case thất bại trong issue hoặc pull request. Không chỉnh cột “Kết quả mong đợi” để che một lỗi đang tồn tại.
