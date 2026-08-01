@@ -1,11 +1,11 @@
 {
   "info": {
     "_postman_id": "52b2d04d-1f76-4a50-8f66-0b00c19b7a21",
-    "name": "CampusFlow API - Phase 8",
+    "name": "CampusFlow API - Phase 9",
     "description": "Version-controlled API tests for CampusFlow authentication, owned CRUD resources, planning views, account settings, and project progress. Run folders in order. Postman keeps the HttpOnly session cookie in its cookie jar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": {
-      "major": 8,
+      "major": 9,
       "minor": 0,
       "patch": 0
     }
@@ -1079,7 +1079,69 @@
       ]
     },
     {
-      "name": "10 - Ownership",
+      "name": "10 - Global Search",
+      "description": "Searches owned Courses, Projects, and Tasks and checks query validation.",
+      "item": [
+        {
+          "name": "Search owned workspace",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/search?q=Postman",
+            "description": "Returns the Course, Project, and Task created earlier in their grouped search results."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Search finds each created resource', function () {",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data.query).to.eql('Postman');",
+                  "  pm.expect(data.courses.map((item) => String(item.id))).to.include(String(pm.environment.get('course_id')));",
+                  "  pm.expect(data.projects.map((item) => String(item.id))).to.include(String(pm.environment.get('project_id')));",
+                  "  pm.expect(data.tasks.map((item) => String(item.id))).to.include(String(pm.environment.get('task_id')));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject short search query",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/search?q=a",
+            "description": "Verifies the minimum two-character search validation."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Query field error is returned', function () {",
+                  "  pm.expect(pm.response.json().errors.q).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11 - Ownership",
       "description": "Switches from the owner account to a second user, verifies private resources return 404, then logs the owner back in for cleanup.",
       "item": [
         {
@@ -1180,6 +1242,35 @@
                   "  const courses = pm.response.json().data;",
                   "  const ownerCourseId = String(pm.environment.get('course_id'));",
                   "  pm.expect(courses.some((course) => String(course.id) === ownerCourseId)).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search keeps owner resources private",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/search?q=Postman",
+            "description": "The second user must not find the first user's Course, Project, or Task."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Owner resources are absent from search', function () {",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data.courses.map((item) => String(item.id))).not.to.include(String(pm.environment.get('course_id')));",
+                  "  pm.expect(data.projects.map((item) => String(item.id))).not.to.include(String(pm.environment.get('project_id')));",
+                  "  pm.expect(data.tasks.map((item) => String(item.id))).not.to.include(String(pm.environment.get('task_id')));",
                   "});"
                 ]
               }
@@ -1379,7 +1470,7 @@
       ]
     },
     {
-      "name": "11 - Account Settings",
+      "name": "12 - Account Settings",
       "description": "Updates the owner profile, validates password checks, rotates the session, and verifies login with the new password.",
       "item": [
         {

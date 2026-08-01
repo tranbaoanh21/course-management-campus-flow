@@ -1,4 +1,4 @@
-# CampusFlow — REST API Contract (Phase 1–8)
+# CampusFlow — REST API Contract (Phase 1–9)
 
 ## 1. Quy ước chung
 
@@ -70,6 +70,7 @@ Field `errors` chỉ xuất hiện khi có lỗi validation theo từng field.
 | `POST`   | `/api/auth/logout`                 | Hủy session              | Required |
 | `GET`    | `/api/dashboard`                   | Tổng quan và deadline    | Required |
 | `GET`    | `/api/calendar`                    | Deadline theo tháng      | Required |
+| `GET`    | `/api/search`                      | Tìm toàn workspace       | Required |
 | `GET`    | `/api/courses`                     | Lấy danh sách course     | Required |
 | `POST`   | `/api/courses`                     | Tạo course               | Required |
 | `GET`    | `/api/courses/:course_id/overview` | Tổng quan một course     | Required |
@@ -190,7 +191,67 @@ Lấy toàn bộ Task có due date trong một tháng của user hiện tại.
 
 Month không hợp lệ trả `400 Validation failed` với `errors.month`.
 
-## 7. Course API
+## 7. Global Search API
+
+### `GET /api/search`
+
+Tìm đồng thời Course theo `name`, Project và Task theo `title`. Kết quả chỉ thuộc user hiện tại.
+
+#### Query parameters
+
+| Query | Bắt buộc | Giá trị hợp lệ       |
+| ----- | -------- | -------------------- |
+| `q`   | Có       | Chuỗi từ 2–100 ký tự |
+
+#### Response `200 OK`
+
+```json
+{
+  "data": {
+    "query": "database",
+    "counts": {
+      "courses": 1,
+      "projects": 1,
+      "tasks": 1
+    },
+    "courses": [
+      {
+        "id": 1,
+        "name": "Database Systems"
+      }
+    ],
+    "projects": [
+      {
+        "id": 2,
+        "course_id": 1,
+        "title": "Database Assignment",
+        "description": "Design a relational database.",
+        "due_date": "2026-08-15",
+        "course_name": "Database Systems"
+      }
+    ],
+    "tasks": [
+      {
+        "id": 7,
+        "project_id": 2,
+        "title": "Database ERD",
+        "status": "in-progress",
+        "due_date": "2026-08-10",
+        "project_title": "Database Assignment",
+        "course_id": 1,
+        "course_name": "Database Systems",
+        "is_overdue": false
+      }
+    ]
+  }
+}
+```
+
+Mỗi nhóm trả tối đa 5 Course, 5 Project và 8 Task. `counts` là số kết quả có trong response, không phải tổng số record trong database. Nếu không khớp, ba mảng rỗng và các count bằng `0`.
+
+Query thiếu, ngắn hơn 2 hoặc dài hơn 100 ký tự trả `400 Validation failed` với `errors.q`.
+
+## 8. Course API
 
 ### `GET /api/courses`
 
@@ -352,7 +413,7 @@ Validation của `name` giống endpoint tạo course.
 }
 ```
 
-## 8. Project API
+## 9. Project API
 
 ### `GET /api/courses/:course_id/projects`
 
@@ -512,7 +573,7 @@ Validation của các field giống endpoint tạo project.
 }
 ```
 
-## 9. Task API
+## 10. Task API
 
 ### `GET /api/tasks`
 
@@ -750,7 +811,7 @@ Xóa một task.
 }
 ```
 
-## 10. Quy tắc xử lý endpoint và ID không hợp lệ
+## 11. Quy tắc xử lý endpoint và ID không hợp lệ
 
 Nếu ID trên URL không phải số nguyên dương:
 
@@ -772,7 +833,7 @@ Nếu client gọi endpoint không tồn tại:
 
 Response là `404 Not Found`.
 
-## 11. Authentication API
+## 12. Authentication API
 
 Auth responses gửi header `Cache-Control: no-store`. Register/login thành công tạo server-side session và gửi cookie bằng `Set-Cookie`.
 

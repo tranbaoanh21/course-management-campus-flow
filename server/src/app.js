@@ -10,6 +10,7 @@ const courseRoutes = require('./routes/courseRoutes');
 const courseProjectRoutes = require('./routes/courseProjectRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const projectTaskRoutes = require('./routes/projectTaskRoutes');
+const searchRoutes = require('./routes/searchRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const requireAuth = require('./middleware/requireAuth');
 
@@ -57,6 +58,7 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/courses/:course_id/projects', courseProjectRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects/:project_id/tasks', projectTaskRoutes);
+app.use('/api/search', searchRoutes);
 app.use('/api/tasks', taskRoutes);
 
 app.use((request, response) => {
