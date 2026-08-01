@@ -3,6 +3,7 @@ import { useState } from 'react';
 import AuthScreen, { AuthLoadingScreen, SessionErrorScreen } from './features/auth/AuthScreen';
 import CalendarView from './features/calendar/CalendarView';
 import CourseManager from './features/courses/CourseManager';
+import CourseOverview from './features/courses/CourseOverview';
 import DashboardOverview from './features/dashboard/DashboardOverview';
 import AccountSettings from './features/settings/AccountSettings';
 import PersonalPlanner from './features/tasks/PersonalPlanner';
@@ -26,6 +27,7 @@ function Workspace({ user, isLoggingOut, onLogout }) {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [projectRefreshKey, setProjectRefreshKey] = useState(0);
+  const [courseOverviewRefreshKey, setCourseOverviewRefreshKey] = useState(0);
 
   function handleSelectCourse(course) {
     setActiveView(course ? 'course' : 'dashboard');
@@ -61,6 +63,15 @@ function Workspace({ user, isLoggingOut, onLogout }) {
     setActiveView('settings');
     setSelectedCourse(null);
     setSelectedProject(null);
+  }
+
+  function handleProjectsChanged() {
+    setCourseOverviewRefreshKey((key) => key + 1);
+  }
+
+  function handleTasksChanged() {
+    setProjectRefreshKey((key) => key + 1);
+    setCourseOverviewRefreshKey((key) => key + 1);
   }
 
   return (
@@ -207,10 +218,19 @@ function Workspace({ user, isLoggingOut, onLogout }) {
               </div>
 
               <div className="mt-7">
+                <CourseOverview
+                  key={selectedCourse.id}
+                  selectedCourse={selectedCourse}
+                  refreshKey={courseOverviewRefreshKey}
+                />
+              </div>
+
+              <div className="mt-8">
                 <ProjectManager
                   selectedCourse={selectedCourse}
                   selectedProjectId={selectedProject?.id}
                   refreshKey={projectRefreshKey}
+                  onProjectsChanged={handleProjectsChanged}
                   onSelectProject={setSelectedProject}
                 />
               </div>
@@ -218,7 +238,7 @@ function Workspace({ user, isLoggingOut, onLogout }) {
               <div className="mt-8">
                 <TaskManager
                   selectedProject={selectedProject}
-                  onTasksChanged={() => setProjectRefreshKey((key) => key + 1)}
+                  onTasksChanged={handleTasksChanged}
                 />
               </div>
             </div>

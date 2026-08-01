@@ -5,6 +5,11 @@ export async function getCourses() {
   return result.data;
 }
 
+export async function getCourseOverview(courseId) {
+  const result = await request(`/courses/${courseId}/overview`);
+  return result.data;
+}
+
 export async function createCourse(name) {
   const result = await request('/courses', {
     method: 'POST',

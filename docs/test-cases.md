@@ -1,4 +1,4 @@
-# CampusFlow — Phase 1–7 Test Cases
+# CampusFlow — Phase 1–8 Test Cases
 
 ## 1. Mục đích
 
@@ -139,7 +139,21 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | PP-07 | Ownership progress      | User khác gọi danh sách Project của Course không thuộc mình | API trả `404`; không lộ số liệu Task hay tiến độ của chủ sở hữu             |
 | PP-08 | Dữ liệu progress từ API | Gọi GET Project sau khi thay đổi Task                       | Các count, phần trăm và trạng thái được tính lại từ dữ liệu hiện có ở MySQL |
 
-## 13. API và chất lượng giao diện
+## 13. Course Overview
+
+| ID    | Trường hợp          | Thao tác                                             | Kết quả mong đợi                                                       |
+| ----- | ------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------- |
+| CO-01 | Course trống        | Mở Course mới chưa có Project                        | Mọi count và tiến độ bằng `0`; không có deadline tồn đọng              |
+| CO-02 | Thống kê Course     | Tạo Project cùng nhiều Task có status khác nhau      | Số Project, Task và từng status khớp dữ liệu trong MySQL               |
+| CO-03 | Deadline kế tiếp    | Có nhiều Task chưa hoàn thành với due date khác nhau | Hiển thị Task có due date sớm nhất cùng tên Project                    |
+| CO-04 | Không còn deadline  | Đổi toàn bộ Task sang `done`                         | `next_deadline` là `null`; UI báo không còn việc tồn đọng              |
+| CO-05 | Tự đồng bộ          | Tạo, sửa hoặc xóa Project/Task                       | Overview tự tải lại mà không cần refresh browser                       |
+| CO-06 | Course ID sai       | Gọi overview với ID `abc`, `0` hoặc số âm            | API trả `400 Invalid course ID.`                                       |
+| CO-07 | Ownership overview  | User B gọi overview Course của user A                | API trả `404 Course not found.` và không lộ thống kê                   |
+| CO-08 | Trạng thái tải/lỗi  | Mở Course khi API chậm hoặc tạm dừng backend         | UI có skeleton; khi lỗi có thông báo và nút **Thử lại**                |
+| CO-09 | Responsive overview | Mở Course trên mobile, tablet và desktop             | Các metric card đổi từ một cột sang hai hoặc bốn cột, không tràn ngang |
+
+## 14. API và chất lượng giao diện
 
 | ID   | Trường hợp             | Thao tác                                   | Kết quả mong đợi                                                                             |
 | ---- | ---------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
@@ -154,6 +168,6 @@ Tài liệu này là checklist nghiệm thu thủ công cho chức năng quản 
 | Q-09 | Xác nhận xóa           | Bấm xóa rồi xác nhận trong dialog          | Nút hiện đang xử lý; dialog đóng sau khi API thành công                                      |
 | Q-10 | Feedback thành công    | Tạo, sửa, đổi status hoặc xóa dữ liệu      | Toast thành công xuất hiện và tự đóng sau vài giây                                           |
 
-## 14. Ghi nhận kết quả
+## 15. Ghi nhận kết quả
 
 Khi test một phiên bản trước khi merge hoặc release, ghi lại commit, ngày test và các test case thất bại trong issue hoặc pull request. Không chỉnh cột “Kết quả mong đợi” để che một lỗi đang tồn tại.

@@ -61,7 +61,13 @@ function sortProjects(projects) {
   );
 }
 
-function ProjectManager({ selectedCourse, selectedProjectId, refreshKey, onSelectProject }) {
+function ProjectManager({
+  selectedCourse,
+  selectedProjectId,
+  refreshKey,
+  onProjectsChanged,
+  onSelectProject,
+}) {
   const { showToast } = useToast();
   const [projects, setProjects] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -201,6 +207,7 @@ function ProjectManager({ selectedCourse, selectedProjectId, refreshKey, onSelec
         showToast('Project đã được tạo.');
       }
 
+      onProjectsChanged();
       closeForm();
     } catch (error) {
       setFormErrors(error.fieldErrors || {});
@@ -233,6 +240,7 @@ function ProjectManager({ selectedCourse, selectedProjectId, refreshKey, onSelec
         onSelectProject(null);
       }
 
+      onProjectsChanged();
       showToast('Project đã được xóa.');
     } catch (error) {
       setActionError(error.message);
