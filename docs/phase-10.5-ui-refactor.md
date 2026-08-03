@@ -47,6 +47,7 @@ Nguyên tắc:
 - Course sidebar, create/edit states và selected-course treatment.
 - Dashboard header, workspace summary, priority list và progress panel.
 - Global Search launcher trong application header.
+- Shared Modal, Confirm Dialog và Toast accessibility/styling.
 
 ## 5. Bước tiếp theo sau khi duyệt
 

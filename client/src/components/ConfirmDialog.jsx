@@ -16,10 +16,10 @@ function ConfirmDialog({
 
   return (
     <Modal title={title} description={description} onClose={handleClose}>
-      <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
+      <div className="flex justify-end gap-3 pt-2">
         <button
           type="button"
-          className="rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+          className="border border-[var(--cf-line)] px-4 py-2.5 text-sm font-semibold text-[var(--cf-muted)] transition hover:border-[var(--cf-line-strong)] hover:text-[var(--cf-ink)] disabled:opacity-50"
           disabled={isConfirming}
           onClick={onCancel}
         >
@@ -27,7 +27,7 @@ function ConfirmDialog({
         </button>
         <button
           type="button"
-          className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+          className="bg-[var(--cf-danger)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8e3329] disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isConfirming}
           onClick={onConfirm}
         >

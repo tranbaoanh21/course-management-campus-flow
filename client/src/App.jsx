@@ -125,6 +125,7 @@ function Workspace({ user, isLoggingOut, onLogout }) {
             <nav className="hidden h-[4.5rem] items-stretch md:flex" aria-label="Workspace">
               <button
                 type="button"
+                aria-current={activeView === 'dashboard' ? 'page' : undefined}
                 className={`border-b-2 px-3 text-xs font-semibold transition ${
                   activeView === 'dashboard'
                     ? 'border-[var(--cf-accent)] text-[var(--cf-ink)]'
@@ -136,6 +137,7 @@ function Workspace({ user, isLoggingOut, onLogout }) {
               </button>
               <button
                 type="button"
+                aria-current={activeView === 'planner' ? 'page' : undefined}
                 className={`border-b-2 px-3 text-xs font-semibold transition ${
                   activeView === 'planner'
                     ? 'border-[var(--cf-accent)] text-[var(--cf-ink)]'
@@ -147,6 +149,7 @@ function Workspace({ user, isLoggingOut, onLogout }) {
               </button>
               <button
                 type="button"
+                aria-current={activeView === 'calendar' ? 'page' : undefined}
                 className={`border-b-2 px-3 text-xs font-semibold transition ${
                   activeView === 'calendar'
                     ? 'border-[var(--cf-accent)] text-[var(--cf-ink)]'
@@ -282,6 +285,7 @@ function MobileNavButton({ active, children, onClick }) {
   return (
     <button
       type="button"
+      aria-current={active ? 'page' : undefined}
       className={`border-b-2 px-3 py-3 text-xs font-semibold ${
         active
           ? 'border-[var(--cf-accent)] text-[var(--cf-ink)]'

@@ -280,6 +280,7 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
                     >
                       <button
                         type="button"
+                        aria-current={selectedCourseId === course.id ? 'page' : undefined}
                         className="flex min-w-0 flex-1 items-center gap-3 px-2 py-1 text-left"
                         onClick={() => onSelectCourse(course)}
                       >

@@ -35,17 +35,17 @@ function ToastProvider({ children }) {
       {toast && (
         <div
           key={toast.id}
-          className={`fixed top-20 right-4 z-40 flex max-w-sm items-start gap-3 rounded-xl border bg-white px-4 py-3 text-sm text-slate-700 shadow-xl shadow-slate-200/60 sm:right-6 ${
-            toast.variant === 'error' ? 'border-red-200' : 'border-emerald-200'
+          className={`fixed top-20 right-4 z-40 flex max-w-sm items-start gap-3 border bg-[var(--cf-paper)] px-4 py-3 text-sm text-[var(--cf-ink)] shadow-lg sm:right-6 ${
+            toast.variant === 'error' ? 'border-[var(--cf-danger)]' : 'border-[var(--cf-accent)]'
           }`}
-          role="status"
-          aria-live="polite"
+          role={toast.variant === 'error' ? 'alert' : 'status'}
+          aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
         >
           <span
             className={`grid size-6 shrink-0 place-items-center rounded-full font-bold ${
               toast.variant === 'error'
-                ? 'bg-red-100 text-red-700'
-                : 'bg-emerald-100 text-emerald-700'
+                ? 'bg-[var(--cf-danger-soft)] text-[var(--cf-danger)]'
+                : 'bg-[var(--cf-accent-soft)] text-[var(--cf-accent)]'
             }`}
           >
             {toast.variant === 'error' ? '!' : '✓'}
@@ -54,7 +54,7 @@ function ToastProvider({ children }) {
           <button
             type="button"
             aria-label="Đóng thông báo"
-            className="ml-2 text-lg leading-5 text-slate-300 hover:text-slate-600"
+            className="ml-2 text-lg leading-5 text-[var(--cf-faint)] hover:text-[var(--cf-ink)]"
             onClick={dismissToast}
           >
             ×

@@ -341,6 +341,7 @@ function ProjectManager({
                 >
                   <button
                     type="button"
+                    aria-pressed={isSelected}
                     className="block w-full text-left"
                     onClick={() => onSelectProject(project)}
                   >
