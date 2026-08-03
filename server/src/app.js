@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const { pool, testDatabaseConnection } = require('./config/db');
+const { getEnvironment } = require('./config/environment');
 const { createSessionMiddleware } = require('./config/session');
 const authRoutes = require('./routes/authRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
@@ -16,19 +17,33 @@ const taskRoutes = require('./routes/taskRoutes');
 const requireAuth = require('./middleware/requireAuth');
 
 const app = express();
-const port = Number(process.env.PORT) || 3000;
+const environment = getEnvironment();
+const port = environment.port;
+let server;
 
-if (process.env.NODE_ENV === 'production') {
+if (environment.isProduction) {
   app.set('trust proxy', 1);
 }
 
+app.disable('x-powered-by');
+
+app.use((request, response, next) => {
+  response.set({
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'no-referrer',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  });
+  next();
+});
+
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN,
+    origin: environment.clientOrigin,
     credentials: true,
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: '32kb' }));
 app.use(createSessionMiddleware());
 
 app.get('/api/health', async (request, response) => {
@@ -87,7 +102,7 @@ async function startServer() {
   try {
     await testDatabaseConnection();
 
-    app.listen(port, () => {
+    server = app.listen(port, () => {
       console.log(`CampusFlow API is running at http://localhost:${port}`);
       console.log('MySQL database connected successfully.');
     });
@@ -95,6 +110,36 @@ async function startServer() {
     console.error('Unable to connect to MySQL:', error.message);
     process.exit(1);
   }
+}
+
+async function shutdown(signal) {
+  console.log(`${signal} received. Closing CampusFlow API...`);
+
+  if (server) {
+    await new Promise((resolve, reject) => {
+      server.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
+    });
+  }
+
+  await pool.end();
+}
+
+for (const signal of ['SIGTERM', 'SIGINT']) {
+  process.once(signal, () => {
+    shutdown(signal)
+      .then(() => process.exit(0))
+      .catch((error) => {
+        console.error('Graceful shutdown failed:', error.message);
+        process.exit(1);
+      });
+  });
 }
 
 startServer();

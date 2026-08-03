@@ -1,13 +1,22 @@
 const mysql = require('mysql2/promise');
+const { getEnvironment } = require('./environment');
+
+const { database } = getEnvironment();
 
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: database.host,
+  port: database.port,
+  user: database.user,
+  password: database.password,
+  database: database.name,
+  ssl: database.ssl
+    ? {
+        rejectUnauthorized: database.sslRejectUnauthorized,
+      }
+    : undefined,
   waitForConnections: true,
   connectionLimit: 10,
+  enableKeepAlive: true,
   dateStrings: true,
 });
 

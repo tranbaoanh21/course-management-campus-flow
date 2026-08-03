@@ -1,35 +1,45 @@
 const session = require('express-session');
 
 const { pool } = require('./db');
+const { getEnvironment } = require('./environment');
 const { MySQLSessionStore } = require('./MySQLSessionStore');
 
 const SESSION_COOKIE_NAME = 'campusflow.sid';
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-const isProduction = process.env.NODE_ENV === 'production';
+
+function getSessionCookieOptions({ includeMaxAge = true } = {}) {
+  const { session: sessionEnvironment } = getEnvironment();
+  const options = {
+    httpOnly: true,
+    sameSite: sessionEnvironment.sameSite,
+    secure: sessionEnvironment.secure,
+    path: '/',
+  };
+
+  if (includeMaxAge) {
+    options.maxAge = SESSION_MAX_AGE_MS;
+  }
+
+  return options;
+}
 
 function createSessionMiddleware() {
-  if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32) {
-    throw new Error('SESSION_SECRET must contain at least 32 characters.');
-  }
+  const { session: sessionEnvironment } = getEnvironment();
 
   return session({
     name: SESSION_COOKIE_NAME,
-    secret: process.env.SESSION_SECRET,
+    secret: sessionEnvironment.secret,
     store: new MySQLSessionStore(pool, SESSION_MAX_AGE_MS),
     resave: false,
     saveUninitialized: false,
     rolling: true,
     unset: 'destroy',
-    cookie: {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: isProduction,
-      maxAge: SESSION_MAX_AGE_MS,
-    },
+    cookie: getSessionCookieOptions(),
   });
 }
 
 module.exports = {
   SESSION_COOKIE_NAME,
   createSessionMiddleware,
+  getSessionCookieOptions,
 };

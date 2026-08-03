@@ -99,13 +99,17 @@ Open `http://localhost:5173`.
 Backend variables in `server/.env`:
 
 ```text
+NODE_ENV=development
 PORT=3000
 CLIENT_ORIGIN=http://localhost:5173
+SESSION_COOKIE_SAME_SITE=lax
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=your_local_password
 DB_NAME=campus_flow
+DB_SSL=false
+DB_SSL_REJECT_UNAUTHORIZED=true
 SESSION_SECRET=replace_with_a_long_random_secret
 ```
 
@@ -155,6 +159,7 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 - `docs/phase-9-global-search.md` — global workspace search scope
 - `docs/phase-10-data-export.md` — personal JSON backup scope
 - `docs/phase-10.5-ui-refactor.md` — visual identity and UX refactor scope
+- `docs/phase-11-production-readiness.md` — production audit and deployment blockers
 - `docs/erd.mmd` — Mermaid entity relationship diagram
 - `docs/api.md` — REST API contract
 - `docs/test-cases.md` — manual acceptance checklist
@@ -162,4 +167,4 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 
 ## Project status
 
-Phase 1 MVP through Phase 10 Data Export are complete. Phase 10.5 Visual Identity & UX Refactor is in progress, beginning with the application shell, Course navigation, and Dashboard. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred until their scope and infrastructure are agreed.
+Phase 1 MVP through Phase 10 Data Export are complete. Phase 10.5 Visual Identity & UX Refactor and Phase 11 Production Readiness are in progress. Collaboration, file uploads, realtime features, and Docker are intentionally deferred until their scope and infrastructure are agreed.

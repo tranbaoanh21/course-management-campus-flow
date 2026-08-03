@@ -1,5 +1,5 @@
 const { pool } = require('../config/db');
-const { SESSION_COOKIE_NAME } = require('../config/session');
+const { SESSION_COOKIE_NAME, getSessionCookieOptions } = require('../config/session');
 const {
   normalizeEmail,
   validateRegistrationInput,
@@ -249,12 +249,7 @@ function logout(request, response, next) {
       return;
     }
 
-    response.clearCookie(SESSION_COOKIE_NAME, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-    });
+    response.clearCookie(SESSION_COOKIE_NAME, getSessionCookieOptions({ includeMaxAge: false }));
 
     response.status(200).json({
       message: 'Logged out successfully.',
