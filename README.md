@@ -154,6 +154,7 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 - `docs/phase-8-course-overview.md` — per-course overview scope
 - `docs/phase-9-global-search.md` — global workspace search scope
 - `docs/phase-10-data-export.md` — personal JSON backup scope
+- `docs/phase-10.5-ui-refactor.md` — visual identity and UX refactor scope
 - `docs/erd.mmd` — Mermaid entity relationship diagram
 - `docs/api.md` — REST API contract
 - `docs/test-cases.md` — manual acceptance checklist
@@ -161,4 +162,4 @@ Use `npm run format` to apply Prettier formatting. Backend validation tests use 
 
 ## Project status
 
-Phase 1 MVP through Phase 6 Calendar & Monthly Agenda are complete. Phase 7 Project Progress Tracking through Phase 10 Data Export are implemented and waiting for local regression testing. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred until their scope and infrastructure are agreed.
+Phase 1 MVP through Phase 10 Data Export are complete. Phase 10.5 Visual Identity & UX Refactor is in progress, beginning with the application shell, Course navigation, and Dashboard. Collaboration, file uploads, realtime features, Docker, and deployment are intentionally deferred until their scope and infrastructure are agreed.

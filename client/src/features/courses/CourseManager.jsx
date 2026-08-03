@@ -155,18 +155,16 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
 
   return (
     <>
-      <aside className="border-b border-slate-200 bg-white px-4 py-5 sm:px-6 lg:border-r lg:border-b-0 lg:px-4 lg:py-6">
-        <div className="flex items-center justify-between gap-3 px-2">
+      <aside className="border-b border-[var(--cf-line)] bg-[var(--cf-paper)] px-4 py-5 sm:px-6 lg:border-r lg:border-b-0 lg:px-5 lg:py-8">
+        <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              Workspace
-            </p>
-            <h2 className="mt-1 font-semibold text-slate-900">Môn học</h2>
+            <h2 className="font-editorial text-xl font-semibold tracking-tight">Môn học</h2>
+            <p className="mt-1 text-xs text-[var(--cf-muted)]">Không gian theo học kỳ</p>
           </div>
           <button
             type="button"
             aria-label="Tạo course"
-            className="grid size-9 place-items-center rounded-lg bg-slate-900 text-xl text-white transition hover:bg-slate-700"
+            className="grid size-8 place-items-center border border-[var(--cf-line-strong)] text-lg text-[var(--cf-accent)] transition hover:border-[var(--cf-accent)] hover:bg-[var(--cf-accent-soft)]"
             onClick={() => {
               setShowForm((currentValue) => !currentValue);
               setFormError('');
@@ -178,10 +176,10 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
 
         {showForm && (
           <form
-            className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50 p-3"
+            className="mt-5 border border-[var(--cf-line)] bg-[var(--cf-accent-soft)] p-3"
             onSubmit={handleSubmit}
           >
-            <label className="text-xs font-semibold text-slate-700" htmlFor="course-name">
+            <label className="text-xs font-semibold text-[var(--cf-ink)]" htmlFor="course-name">
               Tên course
             </label>
             <input
@@ -190,7 +188,7 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
               value={name}
               maxLength={150}
               autoFocus
-              className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+              className="mt-2 w-full border border-[var(--cf-line-strong)] bg-[var(--cf-paper)] px-3 py-2 text-sm outline-none transition focus:border-[var(--cf-accent)] focus:ring-2 focus:ring-[#c8ddcf]"
               placeholder="Database Systems"
               onChange={(event) => setName(event.target.value)}
             />
@@ -198,14 +196,14 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
             <div className="mt-3 flex gap-2">
               <button
                 type="submit"
-                className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-60"
+                className="bg-[var(--cf-accent)] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[var(--cf-accent-hover)] disabled:opacity-60"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Đang tạo...' : 'Tạo course'}
               </button>
               <button
                 type="button"
-                className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-white"
+                className="px-3 py-2 text-xs font-semibold text-[var(--cf-muted)] hover:bg-white/70"
                 onClick={() => setShowForm(false)}
               >
                 Hủy
@@ -214,11 +212,11 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
           </form>
         )}
 
-        <div className="mt-5">
-          {isLoading && <p className="px-2 py-4 text-sm text-slate-400">Đang tải course...</p>}
+        <div className="mt-7">
+          {isLoading && <p className="py-4 text-sm text-[var(--cf-faint)]">Đang tải môn học...</p>}
 
           {!isLoading && loadError && (
-            <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
+            <div className="border border-red-200 bg-[var(--cf-danger-soft)] p-3 text-sm text-[var(--cf-danger)]">
               <p>{loadError}</p>
               <button
                 type="button"
@@ -231,18 +229,18 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
           )}
 
           {!isLoading && !loadError && courses.length === 0 && (
-            <p className="rounded-xl border border-dashed border-slate-200 px-3 py-5 text-center text-sm text-slate-400">
-              Chưa có course nào.
+            <p className="border-y border-dashed border-[var(--cf-line)] px-3 py-6 text-center text-sm text-[var(--cf-faint)]">
+              Chưa có môn học nào.
             </p>
           )}
 
           {!isLoading && !loadError && courses.length > 0 && (
-            <ul className="flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-1 lg:overflow-visible">
+            <ul className="flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-0.5 lg:overflow-visible">
               {courses.map((course) => (
                 <li key={course.id} className="group min-w-52 lg:min-w-0">
                   {editingCourseId === course.id ? (
                     <form
-                      className="rounded-xl border border-indigo-200 bg-indigo-50 p-2"
+                      className="border border-[var(--cf-line)] bg-[var(--cf-accent-soft)] p-2"
                       onSubmit={(event) => handleUpdate(event, course.id)}
                     >
                       <input
@@ -251,21 +249,21 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
                         maxLength={150}
                         autoFocus
                         aria-label={`Tên mới của ${course.name}`}
-                        className="w-full rounded-lg border border-indigo-200 bg-white px-2.5 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                        className="w-full border border-[var(--cf-line-strong)] bg-[var(--cf-paper)] px-2.5 py-2 text-sm outline-none focus:border-[var(--cf-accent)] focus:ring-2 focus:ring-[#c8ddcf]"
                         onChange={(event) => setEditName(event.target.value)}
                       />
                       {editError && <p className="mt-1.5 text-xs text-red-600">{editError}</p>}
                       <div className="mt-2 flex gap-2">
                         <button
                           type="submit"
-                          className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                          className="bg-[var(--cf-accent)] px-2.5 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
                           disabled={isUpdating}
                         >
                           {isUpdating ? 'Đang lưu...' : 'Lưu'}
                         </button>
                         <button
                           type="button"
-                          className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:bg-white"
+                          className="px-2.5 py-1.5 text-xs font-semibold text-[var(--cf-muted)] hover:bg-white/70"
                           onClick={stopEditing}
                         >
                           Hủy
@@ -274,22 +272,22 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
                     </form>
                   ) : (
                     <div
-                      className={`flex items-center gap-1 rounded-xl p-1.5 transition ${
+                      className={`flex items-center gap-1 border-l-2 py-2 pr-1 transition ${
                         selectedCourseId === course.id
-                          ? 'bg-indigo-50 text-indigo-700'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          ? 'border-[var(--cf-accent)] bg-[var(--cf-accent-soft)] text-[var(--cf-ink)]'
+                          : 'border-transparent text-[var(--cf-muted)] hover:bg-[var(--cf-surface)] hover:text-[var(--cf-ink)]'
                       }`}
                     >
                       <button
                         type="button"
-                        className="flex min-w-0 flex-1 items-center gap-3 px-1.5 py-1 text-left"
+                        className="flex min-w-0 flex-1 items-center gap-3 px-2 py-1 text-left"
                         onClick={() => onSelectCourse(course)}
                       >
                         <span
-                          className={`grid size-8 shrink-0 place-items-center rounded-lg text-xs font-bold ${
+                          className={`grid size-8 shrink-0 place-items-center border text-[10px] font-bold tracking-wide ${
                             selectedCourseId === course.id
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 text-slate-500'
+                              ? 'border-[var(--cf-accent)] bg-[var(--cf-accent)] text-white'
+                              : 'border-[var(--cf-line)] bg-[var(--cf-surface)] text-[var(--cf-faint)]'
                           }`}
                         >
                           {course.name.slice(0, 2).toUpperCase()}
@@ -300,7 +298,7 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
                         <button
                           type="button"
                           aria-label={`Sửa ${course.name}`}
-                          className="rounded-md px-1.5 py-1 text-xs font-medium text-slate-400 hover:bg-white hover:text-indigo-600"
+                          className="px-1.5 py-1 text-xs font-medium text-[var(--cf-faint)] hover:text-[var(--cf-accent)]"
                           onClick={() => startEditing(course)}
                         >
                           Sửa
@@ -308,7 +306,7 @@ function CourseManager({ selectedCourseId, onSelectCourse, onUpdateCourse }) {
                         <button
                           type="button"
                           aria-label={`Xóa ${course.name}`}
-                          className="rounded-md px-1.5 py-1 text-xs font-medium text-slate-400 hover:bg-red-50 hover:text-red-600"
+                          className="px-1.5 py-1 text-xs font-medium text-[var(--cf-faint)] hover:text-[var(--cf-danger)]"
                           disabled={deletingCourseId === course.id}
                           onClick={() => handleDelete(course)}
                         >

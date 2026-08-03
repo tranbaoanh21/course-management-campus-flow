@@ -96,7 +96,7 @@ function GlobalSearch({ onOpenResult }) {
     <>
       <button
         type="button"
-        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-500 transition hover:border-slate-300 hover:text-slate-800 sm:px-3"
+        className="flex items-center gap-2 border border-[var(--cf-line)] bg-transparent px-2.5 py-2 text-xs font-medium text-[var(--cf-muted)] transition hover:border-[var(--cf-line-strong)] hover:text-[var(--cf-ink)] sm:px-3"
         aria-label="Tìm trong workspace"
         onClick={() => setIsOpen(true)}
       >

@@ -17,6 +17,14 @@ function formatDate(dateString) {
   }).format(new Date(year, month - 1, day));
 }
 
+function formatToday() {
+  return new Intl.DateTimeFormat('vi-VN', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date());
+}
+
 function DashboardOverview({ user }) {
   const [dashboard, setDashboard] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,12 +74,12 @@ function DashboardOverview({ user }) {
 
   if (error) {
     return (
-      <section className="rounded-2xl border border-red-100 bg-white p-8 text-center">
-        <p className="font-semibold text-slate-900">Không thể tải dashboard</p>
-        <p className="mt-2 text-sm text-slate-500">{error}</p>
+      <section className="border border-red-200 bg-[var(--cf-paper)] p-7 text-center">
+        <p className="font-semibold text-[var(--cf-ink)]">Không thể tải tổng quan</p>
+        <p className="mt-2 text-sm text-[var(--cf-muted)]">{error}</p>
         <button
           type="button"
-          className="mt-5 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-600"
+          className="mt-5 bg-[var(--cf-ink)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--cf-accent)]"
           onClick={loadDashboard}
         >
           Thử lại
@@ -85,71 +93,88 @@ function DashboardOverview({ user }) {
 
   return (
     <div>
-      <div className="border-b border-slate-200 pb-6">
-        <p className="text-sm font-medium text-indigo-600">Tổng quan học kỳ</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-950">
-          Chào {firstName}, hôm nay mình làm gì?
-        </h1>
-        <p className="mt-2 text-sm text-slate-500">
-          Theo dõi tiến độ và xử lý những deadline cần chú ý trước.
+      <header className="grid gap-5 border-b border-[var(--cf-line)] pb-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        <div>
+          <p className="text-xs font-semibold text-[var(--cf-accent)]">Tổng quan học kỳ</p>
+          <h1 className="font-editorial mt-2 max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
+            Chào {firstName}. Việc nào cần làm trước?
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--cf-muted)]">
+            Một bản tóm tắt ngắn về tiến độ và những deadline đang cần sự chú ý của bạn.
+          </p>
+        </div>
+        <p className="border-l border-[var(--cf-line-strong)] pl-4 text-sm capitalize text-[var(--cf-muted)]">
+          {formatToday()}
         </p>
-      </div>
+      </header>
 
-      <section className="mt-7 grid gap-4 sm:grid-cols-3" aria-label="Thống kê workspace">
-        <StatCard label="Courses" value={counts.courses} detail="môn học đang quản lý" />
-        <StatCard label="Projects" value={counts.projects} detail="đồ án và bài tập lớn" />
-        <StatCard
-          label="Tasks"
+      <section
+        className="grid border-b border-[var(--cf-line)] sm:grid-cols-3"
+        aria-label="Thống kê workspace"
+      >
+        <SummaryMetric label="Môn học" value={counts.courses} detail="đang quản lý" />
+        <SummaryMetric label="Đồ án" value={counts.projects} detail="và bài tập lớn" />
+        <SummaryMetric
+          label="Công việc"
           value={counts.tasks}
-          detail={`${taskStatus.overdue} task quá hạn`}
+          detail={`${taskStatus.overdue} việc quá hạn`}
+          danger={taskStatus.overdue > 0}
         />
       </section>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.75fr)]">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-4">
+      <div className="mt-10 grid gap-10 xl:grid-cols-[minmax(0,1.5fr)_minmax(19rem,0.65fr)]">
+        <section>
+          <div className="flex items-end justify-between gap-4 border-b border-[var(--cf-line-strong)] pb-3">
             <div>
-              <p className="text-sm font-semibold text-slate-950">Task cần ưu tiên</p>
-              <p className="mt-1 text-sm text-slate-400">
-                Sắp xếp theo quá hạn và due date gần nhất.
+              <h2 className="font-editorial text-2xl font-semibold tracking-tight">
+                Công việc cần ưu tiên
+              </h2>
+              <p className="mt-1 text-sm text-[var(--cf-muted)]">
+                Quá hạn trước, sau đó đến deadline gần nhất.
               </p>
             </div>
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
-              {dashboard.priority_tasks.length}/6
+            <span className="text-xs font-semibold tabular-nums text-[var(--cf-faint)]">
+              {dashboard.priority_tasks.length} / 6
             </span>
           </div>
 
           {dashboard.priority_tasks.length === 0 ? (
-            <div className="py-14 text-center">
-              <p className="font-semibold text-slate-800">Không có task đang chờ</p>
-              <p className="mt-2 text-sm text-slate-400">
-                Chọn một course ở thanh bên để tạo project và task mới.
+            <div className="border-b border-[var(--cf-line)] py-14">
+              <p className="font-editorial text-xl font-semibold">Không có việc đang chờ.</p>
+              <p className="mt-2 text-sm text-[var(--cf-muted)]">
+                Chọn một môn học ở thanh bên để bắt đầu kế hoạch tiếp theo.
               </p>
             </div>
           ) : (
-            <div className="mt-5 divide-y divide-slate-100">
-              {dashboard.priority_tasks.map((task) => (
-                <article key={task.id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
-                  <span
-                    className={`mt-1.5 size-2.5 shrink-0 rounded-full ${
-                      task.is_overdue ? 'bg-red-500' : 'bg-indigo-500'
-                    }`}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-800">{task.title}</p>
-                    <p className="mt-1 truncate text-xs text-slate-400">
+            <div>
+              {dashboard.priority_tasks.map((task, index) => (
+                <article
+                  key={task.id}
+                  className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-start gap-3 border-b border-[var(--cf-line)] py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)_8rem] sm:gap-4"
+                >
+                  <span className="pt-0.5 text-xs font-semibold tabular-nums text-[var(--cf-faint)]">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      {task.is_overdue && (
+                        <span className="size-1.5 shrink-0 rounded-full bg-[var(--cf-danger)]" />
+                      )}
+                      <p className="truncate text-sm font-semibold">{task.title}</p>
+                    </div>
+                    <p className="mt-1 truncate text-xs text-[var(--cf-muted)]">
                       {task.course_name} · {task.project_title}
                     </p>
                   </div>
-                  <div className="shrink-0 text-right">
+                  <div className="text-right">
                     <p
                       className={`text-xs font-semibold ${
-                        task.is_overdue ? 'text-red-600' : 'text-slate-600'
+                        task.is_overdue ? 'text-[var(--cf-danger)]' : 'text-[var(--cf-ink)]'
                       }`}
                     >
                       {formatDate(task.due_date)}
                     </p>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-[var(--cf-faint)]">
                       {task.is_overdue ? 'Quá hạn' : STATUS_LABELS[task.status]}
                     </p>
                   </div>
@@ -159,26 +184,28 @@ function DashboardOverview({ user }) {
           )}
         </section>
 
-        <section className="rounded-2xl bg-slate-950 p-5 text-white sm:p-6">
-          <p className="text-sm font-semibold">Tiến độ tổng thể</p>
-          <div className="mt-6 flex items-end justify-between gap-4">
-            <p className="text-5xl font-semibold tracking-tight">{completion}%</p>
-            <p className="pb-1 text-xs text-slate-400">
+        <section className="self-start rounded-md bg-[var(--cf-accent)] p-6 text-[#f6f3e9]">
+          <p className="text-xs font-semibold text-[#c9d9ce]">Tiến độ tổng thể</p>
+          <div className="mt-8 flex items-end justify-between gap-4">
+            <p className="font-editorial text-6xl font-semibold leading-none tracking-tight">
+              {completion}%
+            </p>
+            <p className="pb-1 text-xs text-[#c9d9ce]">
               {taskStatus.done}/{counts.tasks} hoàn thành
             </p>
           </div>
-          <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
+          <div className="mt-6 h-1 overflow-hidden bg-white/15">
             <div
-              className="h-full rounded-full bg-indigo-400 transition-[width]"
+              className="h-full bg-[#f0c978] transition-[width]"
               style={{ width: `${completion}%` }}
             />
           </div>
 
-          <dl className="mt-7 space-y-3 border-t border-white/10 pt-5 text-sm">
-            <StatusRow label="Cần làm" value={taskStatus.todo} color="bg-slate-400" />
-            <StatusRow label="Đang làm" value={taskStatus.in_progress} color="bg-sky-400" />
-            <StatusRow label="Hoàn thành" value={taskStatus.done} color="bg-emerald-400" />
-            <StatusRow label="Quá hạn" value={taskStatus.overdue} color="bg-red-400" />
+          <dl className="mt-8 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-white/20 pt-5 text-sm">
+            <StatusItem label="Cần làm" value={taskStatus.todo} />
+            <StatusItem label="Đang làm" value={taskStatus.in_progress} />
+            <StatusItem label="Hoàn thành" value={taskStatus.done} />
+            <StatusItem label="Quá hạn" value={taskStatus.overdue} danger />
           </dl>
         </section>
       </div>
@@ -186,24 +213,37 @@ function DashboardOverview({ user }) {
   );
 }
 
-function StatCard({ label, value, detail }) {
+function SummaryMetric({ label, value, detail, danger = false }) {
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{value}</p>
-      <p className="mt-1 text-sm text-slate-400">{detail}</p>
+    <article className="border-t border-[var(--cf-line)] py-5 sm:border-t-0 sm:border-r sm:px-6 sm:first:pl-0 sm:last:border-r-0">
+      <div className="flex items-baseline justify-between gap-4 sm:block">
+        <p className="text-xs font-semibold text-[var(--cf-muted)]">{label}</p>
+        <p className="font-editorial mt-1 text-4xl font-semibold tracking-tight tabular-nums">
+          {value}
+        </p>
+      </div>
+      <p
+        className={`mt-1 text-xs ${
+          danger ? 'font-semibold text-[var(--cf-danger)]' : 'text-[var(--cf-faint)]'
+        }`}
+      >
+        {detail}
+      </p>
     </article>
   );
 }
 
-function StatusRow({ label, value, color }) {
+function StatusItem({ label, value, danger = false }) {
   return (
-    <div className="flex items-center justify-between">
-      <dt className="flex items-center gap-2 text-slate-300">
-        <span className={`size-2 rounded-full ${color}`} />
-        {label}
-      </dt>
-      <dd className="font-semibold text-white">{value}</dd>
+    <div>
+      <dt className="text-xs text-[#c9d9ce]">{label}</dt>
+      <dd
+        className={`mt-1 text-lg font-semibold tabular-nums ${
+          danger && value > 0 ? 'text-[#ffd0c6]' : 'text-white'
+        }`}
+      >
+        {value}
+      </dd>
     </div>
   );
 }
@@ -211,13 +251,16 @@ function StatusRow({ label, value, color }) {
 function DashboardSkeleton() {
   return (
     <div className="animate-pulse" aria-label="Đang tải dashboard">
-      <div className="h-28 rounded-2xl bg-slate-200/70" />
-      <div className="mt-7 grid gap-4 sm:grid-cols-3">
+      <div className="h-36 border-b border-[var(--cf-line)] bg-[var(--cf-line)]/35" />
+      <div className="grid border-b border-[var(--cf-line)] sm:grid-cols-3">
         {[1, 2, 3].map((item) => (
-          <div key={item} className="h-32 rounded-2xl bg-slate-200/70" />
+          <div key={item} className="h-28 border-r border-[var(--cf-line)] last:border-r-0" />
         ))}
       </div>
-      <div className="mt-6 h-80 rounded-2xl bg-slate-200/70" />
+      <div className="mt-10 grid gap-10 xl:grid-cols-[minmax(0,1.5fr)_minmax(19rem,0.65fr)]">
+        <div className="h-72 bg-[var(--cf-line)]/35" />
+        <div className="h-72 bg-[var(--cf-accent-soft)]" />
+      </div>
     </div>
   );
 }

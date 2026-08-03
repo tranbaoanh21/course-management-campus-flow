@@ -102,34 +102,33 @@ function Workspace({ user, isLoggingOut, onLogout }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] text-slate-900">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3 sm:gap-6">
+    <div className="min-h-screen bg-[var(--cf-canvas)] text-[var(--cf-ink)]">
+      <header className="sticky top-0 z-30 border-b border-[var(--cf-line)] bg-[var(--cf-paper)]/95 backdrop-blur">
+        <div className="mx-auto flex h-[4.5rem] max-w-[1500px] items-center justify-between px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-7">
             <button
               type="button"
-              className="flex items-center gap-3 rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              className="flex shrink-0 items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cf-accent)]"
               onClick={handleShowDashboard}
               aria-label="Mở dashboard"
             >
-              <div className="grid size-9 place-items-center rounded-xl bg-indigo-600 text-sm font-bold text-white shadow-sm shadow-indigo-200">
+              <div className="grid size-9 place-items-center border border-[var(--cf-ink)] bg-[var(--cf-ink)] text-xs font-bold tracking-wider text-[var(--cf-paper)]">
                 CF
               </div>
               <div className="hidden sm:block">
-                <p className="font-semibold tracking-tight text-slate-950">CampusFlow</p>
-                <p className="text-xs text-slate-500">Không gian học tập cá nhân</p>
+                <p className="font-editorial text-lg font-semibold leading-none tracking-tight">
+                  CampusFlow
+                </p>
+                <p className="mt-1 text-[11px] text-[var(--cf-muted)]">Sổ học tập cá nhân</p>
               </div>
             </button>
-            <nav
-              className="hidden items-center rounded-lg bg-slate-100 p-1 md:flex"
-              aria-label="Workspace"
-            >
+            <nav className="hidden h-[4.5rem] items-stretch md:flex" aria-label="Workspace">
               <button
                 type="button"
-                className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition sm:px-3 ${
+                className={`border-b-2 px-3 text-xs font-semibold transition ${
                   activeView === 'dashboard'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'border-[var(--cf-accent)] text-[var(--cf-ink)]'
+                    : 'border-transparent text-[var(--cf-muted)] hover:text-[var(--cf-ink)]'
                 }`}
                 onClick={handleShowDashboard}
               >
@@ -137,10 +136,10 @@ function Workspace({ user, isLoggingOut, onLogout }) {
               </button>
               <button
                 type="button"
-                className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition sm:px-3 ${
+                className={`border-b-2 px-3 text-xs font-semibold transition ${
                   activeView === 'planner'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'border-[var(--cf-accent)] text-[var(--cf-ink)]'
+                    : 'border-transparent text-[var(--cf-muted)] hover:text-[var(--cf-ink)]'
                 }`}
                 onClick={handleShowPlanner}
               >
@@ -148,10 +147,10 @@ function Workspace({ user, isLoggingOut, onLogout }) {
               </button>
               <button
                 type="button"
-                className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition sm:px-3 ${
+                className={`border-b-2 px-3 text-xs font-semibold transition ${
                   activeView === 'calendar'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'border-[var(--cf-accent)] text-[var(--cf-ink)]'
+                    : 'border-transparent text-[var(--cf-muted)] hover:text-[var(--cf-ink)]'
                 }`}
                 onClick={handleShowCalendar}
               >
@@ -160,26 +159,28 @@ function Workspace({ user, isLoggingOut, onLogout }) {
             </nav>
             <GlobalSearch onOpenResult={handleOpenSearchResult} />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
-              className={`flex items-center gap-3 rounded-xl p-1 text-right transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
-                activeView === 'settings' ? 'bg-slate-100' : ''
+              className={`flex items-center gap-3 p-1 text-right transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cf-accent)] ${
+                activeView === 'settings' ? 'text-[var(--cf-accent)]' : ''
               }`}
               onClick={handleShowSettings}
               aria-label="Mở cài đặt tài khoản"
             >
               <span className="hidden sm:block">
-                <span className="block text-sm font-semibold text-slate-800">{user.name}</span>
-                <span className="block max-w-56 truncate text-xs text-slate-400">{user.email}</span>
+                <span className="block text-sm font-semibold">{user.name}</span>
+                <span className="block max-w-56 truncate text-xs text-[var(--cf-faint)]">
+                  {user.email}
+                </span>
               </span>
-              <span className="grid size-9 place-items-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+              <span className="grid size-9 place-items-center rounded-full border border-[var(--cf-line)] bg-[var(--cf-surface)] text-xs font-bold text-[var(--cf-muted)]">
                 {getInitials(user.name)}
               </span>
             </button>
             <button
               type="button"
-              className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-60"
+              className="border-l border-[var(--cf-line)] py-2 pl-3 text-xs font-semibold text-[var(--cf-muted)] transition hover:text-[var(--cf-danger)] disabled:opacity-60"
               disabled={isLoggingOut}
               onClick={onLogout}
             >
@@ -188,14 +189,14 @@ function Workspace({ user, isLoggingOut, onLogout }) {
           </div>
         </div>
         <nav
-          className="grid grid-cols-3 border-t border-slate-100 bg-white px-4 py-2 md:hidden"
+          className="grid grid-cols-3 border-t border-[var(--cf-line)] bg-[var(--cf-paper)] px-4 md:hidden"
           aria-label="Workspace mobile"
         >
           <MobileNavButton active={activeView === 'dashboard'} onClick={handleShowDashboard}>
             Tổng quan
           </MobileNavButton>
           <MobileNavButton active={activeView === 'planner'} onClick={handleShowPlanner}>
-            Tasks
+            Công việc
           </MobileNavButton>
           <MobileNavButton active={activeView === 'calendar'} onClick={handleShowCalendar}>
             Lịch
@@ -203,14 +204,14 @@ function Workspace({ user, isLoggingOut, onLogout }) {
         </nav>
       </header>
 
-      <div className="mx-auto grid max-w-[1440px] lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[17.5rem_minmax(0,1fr)]">
+      <div className="mx-auto grid max-w-[1500px] lg:min-h-[calc(100vh-4.5rem)] lg:grid-cols-[17.5rem_minmax(0,1fr)]">
         <CourseManager
           selectedCourseId={selectedCourse?.id}
           onSelectCourse={handleSelectCourse}
           onUpdateCourse={handleUpdateCourse}
         />
 
-        <main className="min-w-0 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main className="min-w-0 px-4 py-7 sm:px-7 lg:px-10 lg:py-10">
           {activeView === 'dashboard' ? (
             <DashboardOverview user={user} />
           ) : activeView === 'planner' ? (
@@ -222,25 +223,25 @@ function Workspace({ user, isLoggingOut, onLogout }) {
           ) : (
             <div>
               <nav
-                className="flex items-center gap-2 text-sm text-slate-400"
+                className="flex items-center gap-2 text-xs text-[var(--cf-faint)]"
                 aria-label="Breadcrumb"
               >
-                <span>Courses</span>
+                <span>Môn học</span>
                 <span>/</span>
-                <span className="font-medium text-slate-600">{selectedCourse.name}</span>
+                <span className="font-medium text-[var(--cf-muted)]">{selectedCourse.name}</span>
                 {selectedProject && (
                   <>
                     <span>/</span>
-                    <span className="truncate font-medium text-slate-600">
+                    <span className="truncate font-medium text-[var(--cf-muted)]">
                       {selectedProject.title}
                     </span>
                   </>
                 )}
               </nav>
 
-              <div className="mt-3 border-b border-slate-200 pb-6">
-                <p className="text-sm font-medium text-indigo-600">Không gian môn học</p>
-                <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-950">
+              <div className="mt-4 border-b border-[var(--cf-line)] pb-7">
+                <p className="text-xs font-semibold text-[var(--cf-accent)]">Không gian môn học</p>
+                <h1 className="font-editorial mt-1 text-4xl font-semibold tracking-tight">
                   {selectedCourse.name}
                 </h1>
               </div>
@@ -281,8 +282,10 @@ function MobileNavButton({ active, children, onClick }) {
   return (
     <button
       type="button"
-      className={`rounded-lg px-3 py-2 text-xs font-semibold ${
-        active ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500'
+      className={`border-b-2 px-3 py-3 text-xs font-semibold ${
+        active
+          ? 'border-[var(--cf-accent)] text-[var(--cf-ink)]'
+          : 'border-transparent text-[var(--cf-muted)]'
       }`}
       onClick={onClick}
     >

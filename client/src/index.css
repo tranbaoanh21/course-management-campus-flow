@@ -1,6 +1,20 @@
 @import 'tailwindcss';
 
 :root {
+  --cf-canvas: #f3f1ea;
+  --cf-paper: #fffefa;
+  --cf-surface: #f9f8f3;
+  --cf-ink: #20251f;
+  --cf-muted: #667064;
+  --cf-faint: #8d948a;
+  --cf-line: #d9d9cf;
+  --cf-line-strong: #bfc3b8;
+  --cf-accent: #2f624d;
+  --cf-accent-hover: #244d3d;
+  --cf-accent-soft: #e3ece6;
+  --cf-danger: #ad3f32;
+  --cf-danger-soft: #f6e6e1;
+  --cf-warning: #a85f2f;
   font-family:
     Inter,
     ui-sans-serif,
@@ -21,7 +35,17 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #f7f8fa;
+  background: var(--cf-canvas);
+  color: var(--cf-ink);
+}
+
+::selection {
+  background: #c8ddcf;
+  color: var(--cf-ink);
+}
+
+.font-editorial {
+  font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
 }
 
 button,
